@@ -1,0 +1,5 @@
+#include "./module/Dynamic/garkot/header.inc"
+#include "./module/Dynamic/garkot/native.inc"
+#include "./module/Dynamic/garkot/function.inc"
+#include "./module/Dynamic/garkot/cmd.inc"
+#include "./module/Dynamic/garkot/hook.inc"

@@ -1,0 +1,637 @@
+CreateTextDraw()
+{
+	HOSTAR[0] = TextDrawCreate(315.000, 2.000, "LD_SPAC:white");
+    TextDrawTextSize(HOSTAR[0], -1.000, 17.000);
+    TextDrawAlignment(HOSTAR[0], 1);
+    TextDrawColor(HOSTAR[0], 16777215);
+    TextDrawSetShadow(HOSTAR[0], 0);
+    TextDrawSetOutline(HOSTAR[0], 0);
+    TextDrawBackgroundColor(HOSTAR[0], 255);
+    TextDrawFont(HOSTAR[0], 4);
+    TextDrawSetProportional(HOSTAR[0], 1);
+
+    HOSTAR[1] = TextDrawCreate(308.000, 6.000, "LD_SPAC:white");
+    TextDrawTextSize(HOSTAR[1], 1.000, 19.000);
+    TextDrawAlignment(HOSTAR[1], 1);
+    TextDrawColor(HOSTAR[1], 16777215);
+    TextDrawSetShadow(HOSTAR[1], 0);
+    TextDrawSetOutline(HOSTAR[1], 0);
+    TextDrawBackgroundColor(HOSTAR[1], 255);
+    TextDrawFont(HOSTAR[1], 4);
+    TextDrawSetProportional(HOSTAR[1], 1);
+
+    HOSTAR[2] = TextDrawCreate(315.000, 12.000, "LD_SPAC:white");
+    TextDrawTextSize(HOSTAR[2], -8.000, 2.000);
+    TextDrawAlignment(HOSTAR[2], 1);
+    TextDrawColor(HOSTAR[2], 16777215);
+    TextDrawSetShadow(HOSTAR[2], 0);
+    TextDrawSetOutline(HOSTAR[2], 0);
+    TextDrawBackgroundColor(HOSTAR[2], 255);
+    TextDrawFont(HOSTAR[2], 4);
+    TextDrawSetProportional(HOSTAR[2], 1);
+
+    HOSTAR[3] = TextDrawCreate(317.000, 4.000, "ostarcity");
+    TextDrawLetterSize(HOSTAR[3], 0.300, 1.800);
+    TextDrawAlignment(HOSTAR[3], 1);
+    TextDrawColor(HOSTAR[3], -1);
+    TextDrawSetShadow(HOSTAR[3], 1);
+    TextDrawSetOutline(HOSTAR[3], 1);
+    TextDrawBackgroundColor(HOSTAR[3], 0);
+    TextDrawFont(HOSTAR[3], 1);
+    TextDrawSetProportional(HOSTAR[3], 1);
+
+    HOSTAR[4] = TextDrawCreate(316.000, 19.000, "LD_SPAC:white");
+    TextDrawTextSize(HOSTAR[4], 39.000, 1.000);
+    TextDrawAlignment(HOSTAR[4], 1);
+    TextDrawColor(HOSTAR[4], -1);
+    TextDrawSetShadow(HOSTAR[4], 0);
+    TextDrawSetOutline(HOSTAR[4], 0);
+    TextDrawBackgroundColor(HOSTAR[4], 255);
+    TextDrawFont(HOSTAR[4], 4);
+    TextDrawSetProportional(HOSTAR[4], 1);
+
+    HOSTAR[5] = TextDrawCreate(322.000, 18.000, "Roleplay");
+    TextDrawLetterSize(HOSTAR[5], 0.200, 1.299);
+    TextDrawAlignment(HOSTAR[5], 1);
+    TextDrawColor(HOSTAR[5], -1);
+    TextDrawSetShadow(HOSTAR[5], 1);
+    TextDrawSetOutline(HOSTAR[5], 1);
+    TextDrawBackgroundColor(HOSTAR[5], 0);
+    TextDrawFont(HOSTAR[5], 1);
+    TextDrawSetProportional(HOSTAR[5], 1);
+
+
+    DPvehfare = TextDrawCreate(462.000000, 401.166687, "$500.000");
+    TextDrawLetterSize(DPvehfare, 0.216000, 0.952498);
+    TextDrawAlignment(DPvehfare, 1);
+    TextDrawColor(DPvehfare, 16711935);
+    TextDrawSetShadow(DPvehfare, 0);
+    TextDrawSetOutline(DPvehfare, 1);
+    TextDrawBackgroundColor(DPvehfare, 255);
+    TextDrawFont(DPvehfare, 1);
+    TextDrawSetProportional(DPvehfare, 1);
+    TextDrawSetShadow(DPvehfare, 0);
+
+    //List Baju
+    ListBaju[0] = TextDrawCreate(84.000, 150.000, "LD_DUAL:white");
+    TextDrawTextSize(ListBaju[0], 85.000, 22.000);
+    TextDrawAlignment(ListBaju[0], 1);
+    TextDrawColor(ListBaju[0], 512819199);
+    TextDrawSetShadow(ListBaju[0], 0);
+    TextDrawSetOutline(ListBaju[0], 0);
+    TextDrawBackgroundColor(ListBaju[0], 255);
+    TextDrawFont(ListBaju[0], 4);
+    TextDrawSetProportional(ListBaju[0], 1);
+    TextDrawSetSelectable(ListBaju[0], 1);
+
+    ListBaju[1] = TextDrawCreate(84.000, 176.000, "LD_DUAL:white");
+    TextDrawTextSize(ListBaju[1], 85.000, 22.000);
+    TextDrawAlignment(ListBaju[1], 1);
+    TextDrawColor(ListBaju[1], 512819199);
+    TextDrawSetShadow(ListBaju[1], 0);
+    TextDrawSetOutline(ListBaju[1], 0);
+    TextDrawBackgroundColor(ListBaju[1], 255);
+    TextDrawFont(ListBaju[1], 4);
+    TextDrawSetProportional(ListBaju[1], 1);
+    TextDrawSetSelectable(ListBaju[1], 1);
+
+    ListBaju[2] = TextDrawCreate(84.000, 239.000, "LD_DUAL:white");
+    TextDrawTextSize(ListBaju[2], 85.000, 22.000);
+    TextDrawAlignment(ListBaju[2], 1);
+    TextDrawColor(ListBaju[2], 512819199);
+    TextDrawSetShadow(ListBaju[2], 0);
+    TextDrawSetOutline(ListBaju[2], 0);
+    TextDrawBackgroundColor(ListBaju[2], 255);
+    TextDrawFont(ListBaju[2], 4);
+    TextDrawSetProportional(ListBaju[2], 1);
+    TextDrawSetSelectable(ListBaju[2], 1);
+
+    ListBaju[3] = TextDrawCreate(107.000, 154.000, "PAKAIAN");
+    TextDrawLetterSize(ListBaju[3], 0.300, 1.500);
+    TextDrawAlignment(ListBaju[3], 1);
+    TextDrawColor(ListBaju[3], -1);
+    TextDrawSetShadow(ListBaju[3], 0);
+    TextDrawSetOutline(ListBaju[3], 0);
+    TextDrawBackgroundColor(ListBaju[3], 150);
+    TextDrawFont(ListBaju[3], 1);
+    TextDrawSetProportional(ListBaju[3], 1);
+    TextDrawSetSelectable(ListBaju[3], 0);
+
+    ListBaju[4] = TextDrawCreate(102.000, 179.000, "AKSESORIS");
+    TextDrawLetterSize(ListBaju[4], 0.300, 1.500);
+    TextDrawAlignment(ListBaju[4], 1);
+    TextDrawColor(ListBaju[4], -1);
+    TextDrawSetShadow(ListBaju[4], 0);
+    TextDrawSetOutline(ListBaju[4], 0);
+    TextDrawBackgroundColor(ListBaju[4], 150);
+    TextDrawFont(ListBaju[4], 1);
+    TextDrawSetProportional(ListBaju[4], 1);
+    TextDrawSetSelectable(ListBaju[4], 0);
+
+    ListBaju[5] = TextDrawCreate(113.000, 243.000, "BATAL");
+    TextDrawLetterSize(ListBaju[5], 0.300, 1.500);
+    TextDrawAlignment(ListBaju[5], 1);
+    TextDrawColor(ListBaju[5], -1);
+    TextDrawSetShadow(ListBaju[5], 0);
+    TextDrawSetOutline(ListBaju[5], 0);
+    TextDrawBackgroundColor(ListBaju[5], 150);
+    TextDrawFont(ListBaju[5], 1);
+    TextDrawSetProportional(ListBaju[5], 1);
+    TextDrawSetSelectable(ListBaju[5], 0);
+    //Baju TD
+    SelectBaju[0] = TextDrawCreate(221.000, 276.000, "LD_DUAL:white");
+    TextDrawTextSize(SelectBaju[0], 27.000, 23.000);
+    TextDrawAlignment(SelectBaju[0], 1);
+    TextDrawColor(SelectBaju[0], 512819199);
+    TextDrawSetShadow(SelectBaju[0], 0);
+    TextDrawSetOutline(SelectBaju[0], 0);
+    TextDrawBackgroundColor(SelectBaju[0], 255);
+    TextDrawFont(SelectBaju[0], 4);
+    TextDrawSetProportional(SelectBaju[0], 1);
+    TextDrawSetSelectable(SelectBaju[0], 1);
+
+    SelectBaju[1] = TextDrawCreate(386.000, 275.000, "LD_DUAL:white");
+    TextDrawTextSize(SelectBaju[1], 27.000, 23.000);
+    TextDrawAlignment(SelectBaju[1], 1);
+    TextDrawColor(SelectBaju[1], 512819199);
+    TextDrawSetShadow(SelectBaju[1], 0);
+    TextDrawSetOutline(SelectBaju[1], 0);
+    TextDrawBackgroundColor(SelectBaju[1], 255);
+    TextDrawFont(SelectBaju[1], 4);
+    TextDrawSetProportional(SelectBaju[1], 1);
+    TextDrawSetSelectable(SelectBaju[1], 1);
+
+    SelectBaju[2] = TextDrawCreate(228.000, 271.000, "<");
+    TextDrawLetterSize(SelectBaju[2], 0.649, 3.499);
+    TextDrawAlignment(SelectBaju[2], 1);
+    TextDrawColor(SelectBaju[2], -1);
+    TextDrawSetShadow(SelectBaju[2], 0);
+    TextDrawSetOutline(SelectBaju[2], 0);
+    TextDrawBackgroundColor(SelectBaju[2], 150);
+    TextDrawFont(SelectBaju[2], 1);
+    TextDrawSetProportional(SelectBaju[2], 1);
+    TextDrawSetSelectable(SelectBaju[2], 0);
+
+    SelectBaju[3] = TextDrawCreate(395.000, 270.000, ">");
+    TextDrawLetterSize(SelectBaju[3], 0.649, 3.499);
+    TextDrawAlignment(SelectBaju[3], 1);
+    TextDrawColor(SelectBaju[3], -1);
+    TextDrawSetShadow(SelectBaju[3], 0);
+    TextDrawSetOutline(SelectBaju[3], 0);
+    TextDrawBackgroundColor(SelectBaju[3], 150);
+    TextDrawFont(SelectBaju[3], 1);
+    TextDrawSetProportional(SelectBaju[3], 1);
+    TextDrawSetSelectable(SelectBaju[3], 0);
+
+    SelectBaju[4] = TextDrawCreate(249.000, 386.000, "LD_DUAL:white");
+    TextDrawTextSize(SelectBaju[4], 50.000, 17.000);
+    TextDrawAlignment(SelectBaju[4], 1);
+    TextDrawColor(SelectBaju[4], 512819199);
+    TextDrawSetShadow(SelectBaju[4], 0);
+    TextDrawSetOutline(SelectBaju[4], 0);
+    TextDrawBackgroundColor(SelectBaju[4], 255);
+    TextDrawFont(SelectBaju[4], 4);
+    TextDrawSetProportional(SelectBaju[4], 1);
+    TextDrawSetSelectable(SelectBaju[4], 1);
+
+    SelectBaju[5] = TextDrawCreate(263.000, 386.000, "BELI");
+    TextDrawLetterSize(SelectBaju[5], 0.379, 1.799);
+    TextDrawAlignment(SelectBaju[5], 1);
+    TextDrawColor(SelectBaju[5], -1);
+    TextDrawSetShadow(SelectBaju[5], 0);
+    TextDrawSetOutline(SelectBaju[5], 0);
+    TextDrawBackgroundColor(SelectBaju[5], 150);
+    TextDrawFont(SelectBaju[5], 1);
+    TextDrawSetProportional(SelectBaju[5], 1);
+    TextDrawSetSelectable(SelectBaju[5], 0);
+
+    SelectBaju[6] = TextDrawCreate(335.000, 386.000, "LD_DUAL:white");
+    TextDrawTextSize(SelectBaju[6], 50.000, 17.000);
+    TextDrawAlignment(SelectBaju[6], 1);
+    TextDrawColor(SelectBaju[6], 512819199);
+    TextDrawSetShadow(SelectBaju[6], 0);
+    TextDrawSetOutline(SelectBaju[6], 0);
+    TextDrawBackgroundColor(SelectBaju[6], 255);
+    TextDrawFont(SelectBaju[6], 4);
+    TextDrawSetProportional(SelectBaju[6], 1);
+    TextDrawSetSelectable(SelectBaju[6], 1);
+
+    SelectBaju[7] = TextDrawCreate(345.000, 386.000, "BATAL");
+    TextDrawLetterSize(SelectBaju[7], 0.319, 1.799);
+    TextDrawAlignment(SelectBaju[7], 1);
+    TextDrawColor(SelectBaju[7], -1);
+    TextDrawSetShadow(SelectBaju[7], 0);
+    TextDrawSetOutline(SelectBaju[7], 0);
+    TextDrawBackgroundColor(SelectBaju[7], 150);
+    TextDrawFont(SelectBaju[7], 1);
+    TextDrawSetProportional(SelectBaju[7], 1);
+    TextDrawSetSelectable(SelectBaju[7], 0);
+    
+    //Blink Red Screen
+    RedScreen = TextDrawCreate(317.000000, -400.000000, "OVERDOSIS");
+    TextDrawFont(RedScreen, 1);
+    TextDrawLetterSize(RedScreen, 200.258332, 100.750000);
+    TextDrawTextSize(RedScreen, 1000.500000, 1000.500000);
+    TextDrawSetOutline(RedScreen, 1);
+    TextDrawSetShadow(RedScreen, 0);
+    TextDrawAlignment(RedScreen, 2);
+    TextDrawColor(RedScreen, 0xFF0000FF);
+    TextDrawBackgroundColor(RedScreen, 255);
+    TextDrawBoxColor(RedScreen, 0xFF0000FF);
+    TextDrawUseBox(RedScreen, 1);
+    
+    //Modshop Textdraw
+    ModTD[0] = TextDrawCreate(151.000000, 131.000000, "LD_BEAT:right");
+    TextDrawFont(ModTD[0], 4);
+    TextDrawLetterSize(ModTD[0], 0.600000, 2.000000);
+    TextDrawTextSize(ModTD[0], 32.000000, 32.000000);
+    TextDrawSetOutline(ModTD[0], 1);
+    TextDrawSetShadow(ModTD[0], 0);
+    TextDrawAlignment(ModTD[0], 1);
+    TextDrawColor(ModTD[0], -1);
+    TextDrawBackgroundColor(ModTD[0], 255);
+    TextDrawBoxColor(ModTD[0], 50);
+    TextDrawUseBox(ModTD[0], 1);
+    TextDrawSetProportional(ModTD[0], 1);
+    TextDrawSetSelectable(ModTD[0], 1);
+
+    ModTD[1] = TextDrawCreate(76.000000, 131.000000, "LD_BEAT:left");
+    TextDrawFont(ModTD[1], 4);
+    TextDrawLetterSize(ModTD[1], 0.600000, 2.000000);
+    TextDrawTextSize(ModTD[1], 32.000000, 32.000000);
+    TextDrawSetOutline(ModTD[1], 1);
+    TextDrawSetShadow(ModTD[1], 0);
+    TextDrawAlignment(ModTD[1], 1);
+    TextDrawColor(ModTD[1], -1);
+    TextDrawBackgroundColor(ModTD[1], 255);
+    TextDrawBoxColor(ModTD[1], 50);
+    TextDrawUseBox(ModTD[1], 1);
+    TextDrawSetProportional(ModTD[1], 1);
+    TextDrawSetSelectable(ModTD[1], 1);
+
+    ModTD[2] = TextDrawCreate(151.000000, 191.000000, "LD_BEAT:right");
+    TextDrawFont(ModTD[2], 4);
+    TextDrawLetterSize(ModTD[2], 0.600000, 2.000000);
+    TextDrawTextSize(ModTD[2], 32.000000, 32.000000);
+    TextDrawSetOutline(ModTD[2], 1);
+    TextDrawSetShadow(ModTD[2], 0);
+    TextDrawAlignment(ModTD[2], 1);
+    TextDrawColor(ModTD[2], -1);
+    TextDrawBackgroundColor(ModTD[2], 255);
+    TextDrawBoxColor(ModTD[2], 50);
+    TextDrawUseBox(ModTD[2], 1);
+    TextDrawSetProportional(ModTD[2], 1);
+    TextDrawSetSelectable(ModTD[2], 1);
+
+    ModTD[3] = TextDrawCreate(76.000000, 191.000000, "LD_BEAT:left");
+    TextDrawFont(ModTD[3], 4);
+    TextDrawLetterSize(ModTD[3], 0.600000, 2.000000);
+    TextDrawTextSize(ModTD[3], 32.000000, 32.000000);
+    TextDrawSetOutline(ModTD[3], 1);
+    TextDrawSetShadow(ModTD[3], 0);
+    TextDrawAlignment(ModTD[3], 1);
+    TextDrawColor(ModTD[3], -1);
+    TextDrawBackgroundColor(ModTD[3], 255);
+    TextDrawBoxColor(ModTD[3], 50);
+    TextDrawUseBox(ModTD[3], 1);
+    TextDrawSetProportional(ModTD[3], 1);
+    TextDrawSetSelectable(ModTD[3], 1);
+
+    ModTD[4] = TextDrawCreate(151.000000, 251.000000, "LD_BEAT:right");
+    TextDrawFont(ModTD[4], 4);
+    TextDrawLetterSize(ModTD[4], 0.600000, 2.000000);
+    TextDrawTextSize(ModTD[4], 32.000000, 32.000000);
+    TextDrawSetOutline(ModTD[4], 1);
+    TextDrawSetShadow(ModTD[4], 0);
+    TextDrawAlignment(ModTD[4], 1);
+    TextDrawColor(ModTD[4], -1);
+    TextDrawBackgroundColor(ModTD[4], 255);
+    TextDrawBoxColor(ModTD[4], 50);
+    TextDrawUseBox(ModTD[4], 1);
+    TextDrawSetProportional(ModTD[4], 1);
+    TextDrawSetSelectable(ModTD[4], 1);
+
+    ModTD[5] = TextDrawCreate(76.000000, 251.000000, "LD_BEAT:left");
+    TextDrawFont(ModTD[5], 4);
+    TextDrawLetterSize(ModTD[5], 0.600000, 2.000000);
+    TextDrawTextSize(ModTD[5], 32.000000, 32.000000);
+    TextDrawSetOutline(ModTD[5], 1);
+    TextDrawSetShadow(ModTD[5], 0);
+    TextDrawAlignment(ModTD[5], 1);
+    TextDrawColor(ModTD[5], -1);
+    TextDrawBackgroundColor(ModTD[5], 255);
+    TextDrawBoxColor(ModTD[5], 50);
+    TextDrawUseBox(ModTD[5], 1);
+    TextDrawSetProportional(ModTD[5], 1);
+    TextDrawSetSelectable(ModTD[5], 1);
+
+    ModTD[6] = TextDrawCreate(541.000000, 131.000000, "LD_BEAT:right");
+    TextDrawFont(ModTD[6], 4);
+    TextDrawLetterSize(ModTD[6], 0.600000, 2.000000);
+    TextDrawTextSize(ModTD[6], 32.000000, 32.000000);
+    TextDrawSetOutline(ModTD[6], 1);
+    TextDrawSetShadow(ModTD[6], 0);
+    TextDrawAlignment(ModTD[6], 1);
+    TextDrawColor(ModTD[6], -1);
+    TextDrawBackgroundColor(ModTD[6], 255);
+    TextDrawBoxColor(ModTD[6], 50);
+    TextDrawUseBox(ModTD[6], 1);
+    TextDrawSetProportional(ModTD[6], 1);
+    TextDrawSetSelectable(ModTD[6], 1);
+
+    ModTD[7] = TextDrawCreate(466.000000, 131.000000, "LD_BEAT:left");
+    TextDrawFont(ModTD[7], 4);
+    TextDrawLetterSize(ModTD[7], 0.600000, 2.000000);
+    TextDrawTextSize(ModTD[7], 32.000000, 32.000000);
+    TextDrawSetOutline(ModTD[7], 1);
+    TextDrawSetShadow(ModTD[7], 0);
+    TextDrawAlignment(ModTD[7], 1);
+    TextDrawColor(ModTD[7], -1);
+    TextDrawBackgroundColor(ModTD[7], 255);
+    TextDrawBoxColor(ModTD[7], 50);
+    TextDrawUseBox(ModTD[7], 1);
+    TextDrawSetProportional(ModTD[7], 1);
+    TextDrawSetSelectable(ModTD[7], 1);
+
+    ModTD[8] = TextDrawCreate(541.000000, 191.000000, "LD_BEAT:right");
+    TextDrawFont(ModTD[8], 4);
+    TextDrawLetterSize(ModTD[8], 0.600000, 2.000000);
+    TextDrawTextSize(ModTD[8], 32.000000, 32.000000);
+    TextDrawSetOutline(ModTD[8], 1);
+    TextDrawSetShadow(ModTD[8], 0);
+    TextDrawAlignment(ModTD[8], 1);
+    TextDrawColor(ModTD[8], -1);
+    TextDrawBackgroundColor(ModTD[8], 255);
+    TextDrawBoxColor(ModTD[8], 50);
+    TextDrawUseBox(ModTD[8], 1);
+    TextDrawSetProportional(ModTD[8], 1);
+    TextDrawSetSelectable(ModTD[8], 1);
+
+    ModTD[9] = TextDrawCreate(466.000000, 191.000000, "LD_BEAT:left");
+    TextDrawFont(ModTD[9], 4);
+    TextDrawLetterSize(ModTD[9], 0.600000, 2.000000);
+    TextDrawTextSize(ModTD[9], 32.000000, 32.000000);
+    TextDrawSetOutline(ModTD[9], 1);
+    TextDrawSetShadow(ModTD[9], 0);
+    TextDrawAlignment(ModTD[9], 1);
+    TextDrawColor(ModTD[9], -1);
+    TextDrawBackgroundColor(ModTD[9], 255);
+    TextDrawBoxColor(ModTD[9], 50);
+    TextDrawUseBox(ModTD[9], 1);
+    TextDrawSetProportional(ModTD[9], 1);
+    TextDrawSetSelectable(ModTD[9], 1);
+
+    ModTD[10] = TextDrawCreate(541.000000, 251.000000, "LD_BEAT:right");
+    TextDrawFont(ModTD[10], 4);
+    TextDrawLetterSize(ModTD[10], 0.600000, 2.000000);
+    TextDrawTextSize(ModTD[10], 32.000000, 32.000000);
+    TextDrawSetOutline(ModTD[10], 1);
+    TextDrawSetShadow(ModTD[10], 0);
+    TextDrawAlignment(ModTD[10], 1);
+    TextDrawColor(ModTD[10], -1);
+    TextDrawBackgroundColor(ModTD[10], 255);
+    TextDrawBoxColor(ModTD[10], 50);
+    TextDrawUseBox(ModTD[10], 1);
+    TextDrawSetProportional(ModTD[10], 1);
+    TextDrawSetSelectable(ModTD[10], 1);
+
+    ModTD[11] = TextDrawCreate(466.000000, 251.000000, "LD_BEAT:left");
+    TextDrawFont(ModTD[11], 4);
+    TextDrawLetterSize(ModTD[11], 0.600000, 2.000000);
+    TextDrawTextSize(ModTD[11], 32.000000, 32.000000);
+    TextDrawSetOutline(ModTD[11], 1);
+    TextDrawSetShadow(ModTD[11], 0);
+    TextDrawAlignment(ModTD[11], 1);
+    TextDrawColor(ModTD[11], -1);
+    TextDrawBackgroundColor(ModTD[11], 255);
+    TextDrawBoxColor(ModTD[11], 50);
+    TextDrawUseBox(ModTD[11], 1);
+    TextDrawSetProportional(ModTD[11], 1);
+    TextDrawSetSelectable(ModTD[11], 1);
+
+    ModTD[12] = TextDrawCreate(123.000000, 125.000000, "X");
+    TextDrawFont(ModTD[12], 1);
+    TextDrawLetterSize(ModTD[12], 0.600000, 2.000000);
+    TextDrawTextSize(ModTD[12], 400.000000, 17.000000);
+    TextDrawSetOutline(ModTD[12], 1);
+    TextDrawSetShadow(ModTD[12], 0);
+    TextDrawAlignment(ModTD[12], 1);
+    TextDrawColor(ModTD[12], -1);
+    TextDrawBackgroundColor(ModTD[12], 255);
+    TextDrawBoxColor(ModTD[12], 50);
+    TextDrawUseBox(ModTD[12], 0);
+    TextDrawSetProportional(ModTD[12], 1);
+    TextDrawSetSelectable(ModTD[12], 0);
+
+    ModTD[13] = TextDrawCreate(123.000000, 185.000000, "Y");
+    TextDrawFont(ModTD[13], 1);
+    TextDrawLetterSize(ModTD[13], 0.600000, 2.000000);
+    TextDrawTextSize(ModTD[13], 400.000000, 17.000000);
+    TextDrawSetOutline(ModTD[13], 1);
+    TextDrawSetShadow(ModTD[13], 0);
+    TextDrawAlignment(ModTD[13], 1);
+    TextDrawColor(ModTD[13], -1);
+    TextDrawBackgroundColor(ModTD[13], 255);
+    TextDrawBoxColor(ModTD[13], 50);
+    TextDrawUseBox(ModTD[13], 0);
+    TextDrawSetProportional(ModTD[13], 1);
+    TextDrawSetSelectable(ModTD[13], 0);
+
+    ModTD[14] = TextDrawCreate(123.000000, 245.000000, "Z");
+    TextDrawFont(ModTD[14], 1);
+    TextDrawLetterSize(ModTD[14], 0.600000, 2.000000);
+    TextDrawTextSize(ModTD[14], 400.000000, 17.000000);
+    TextDrawSetOutline(ModTD[14], 1);
+    TextDrawSetShadow(ModTD[14], 0);
+    TextDrawAlignment(ModTD[14], 1);
+    TextDrawColor(ModTD[14], -1);
+    TextDrawBackgroundColor(ModTD[14], 255);
+    TextDrawBoxColor(ModTD[14], 50);
+    TextDrawUseBox(ModTD[14], 0);
+    TextDrawSetProportional(ModTD[14], 1);
+    TextDrawSetSelectable(ModTD[14], 0);
+
+    ModTD[15] = TextDrawCreate(505.000000, 125.000000, "RX");
+    TextDrawFont(ModTD[15], 1);
+    TextDrawLetterSize(ModTD[15], 0.600000, 2.000000);
+    TextDrawTextSize(ModTD[15], 400.000000, 17.000000);
+    TextDrawSetOutline(ModTD[15], 1);
+    TextDrawSetShadow(ModTD[15], 0);
+    TextDrawAlignment(ModTD[15], 1);
+    TextDrawColor(ModTD[15], -1);
+    TextDrawBackgroundColor(ModTD[15], 255);
+    TextDrawBoxColor(ModTD[15], 50);
+    TextDrawUseBox(ModTD[15], 0);
+    TextDrawSetProportional(ModTD[15], 1);
+    TextDrawSetSelectable(ModTD[15], 0);
+
+    ModTD[16] = TextDrawCreate(506.000000, 185.000000, "RY");
+    TextDrawFont(ModTD[16], 1);
+    TextDrawLetterSize(ModTD[16], 0.600000, 2.000000);
+    TextDrawTextSize(ModTD[16], 400.000000, 17.000000);
+    TextDrawSetOutline(ModTD[16], 1);
+    TextDrawSetShadow(ModTD[16], 0);
+    TextDrawAlignment(ModTD[16], 1);
+    TextDrawColor(ModTD[16], -1);
+    TextDrawBackgroundColor(ModTD[16], 255);
+    TextDrawBoxColor(ModTD[16], 50);
+    TextDrawUseBox(ModTD[16], 0);
+    TextDrawSetProportional(ModTD[16], 1);
+    TextDrawSetSelectable(ModTD[16], 0);
+
+    ModTD[17] = TextDrawCreate(506.000000, 245.000000, "RZ");
+    TextDrawFont(ModTD[17], 1);
+    TextDrawLetterSize(ModTD[17], 0.600000, 2.000000);
+    TextDrawTextSize(ModTD[17], 400.000000, 17.000000);
+    TextDrawSetOutline(ModTD[17], 1);
+    TextDrawSetShadow(ModTD[17], 0);
+    TextDrawAlignment(ModTD[17], 1);
+    TextDrawColor(ModTD[17], -1);
+    TextDrawBackgroundColor(ModTD[17], 255);
+    TextDrawBoxColor(ModTD[17], 50);
+    TextDrawUseBox(ModTD[17], 0);
+    TextDrawSetProportional(ModTD[17], 1);
+    TextDrawSetSelectable(ModTD[17], 0);
+
+    ModTD[18] = TextDrawCreate(483.000000, 315.000000, "CLOSE");
+    TextDrawFont(ModTD[18], 1);
+    TextDrawLetterSize(ModTD[18], 0.600000, 2.000000);
+    TextDrawTextSize(ModTD[18], 545.500000, 5.000000);
+    TextDrawSetOutline(ModTD[18], 1);
+    TextDrawSetShadow(ModTD[18], 0);
+    TextDrawAlignment(ModTD[18], 1);
+    TextDrawColor(ModTD[18], -1);
+    TextDrawBackgroundColor(ModTD[18], 255);
+    TextDrawBoxColor(ModTD[18], 50);
+    TextDrawUseBox(ModTD[18], 1);
+    TextDrawSetProportional(ModTD[18], 1);
+    TextDrawSetSelectable(ModTD[18], 1);
+
+    //TD MODERN
+    waktu = TextDrawCreate(131.000000, 389.000000, "23:59");
+    TextDrawFont(waktu, 1);
+    TextDrawLetterSize(waktu, 0.154164, 1.000000);
+    TextDrawTextSize(waktu, 407.500000, 59.500000);
+    TextDrawSetOutline(waktu, 0);
+    TextDrawSetShadow(waktu, 0);
+    TextDrawAlignment(waktu, 2);
+    TextDrawColor(waktu, -1);
+    TextDrawBackgroundColor(waktu, 255);
+    TextDrawBoxColor(waktu, 50);
+    TextDrawUseBox(waktu, 0);
+    TextDrawSetProportional(waktu, 1);
+    TextDrawSetSelectable(waktu, 0);
+
+	//ANSURANSI
+	Askel@Global[0] = TextDrawCreate(270.000, 170.000, "New textdraw");
+    TextDrawLetterSize(Askel@Global[0], 0.300, 1.500);
+    TextDrawAlignment(Askel@Global[0], 1);
+    TextDrawColor(Askel@Global[0], 0);
+    TextDrawSetShadow(Askel@Global[0], 0);
+    TextDrawSetOutline(Askel@Global[0], 0);
+    TextDrawBackgroundColor(Askel@Global[0], 0);
+    TextDrawFont(Askel@Global[0], 1);
+    TextDrawSetProportional(Askel@Global[0], 1);
+
+    Askel@Global[1] = TextDrawCreate(6.000, 288.000, "LD_SPAC:white");
+    TextDrawTextSize(Askel@Global[1], 113.000, 46.000);
+    TextDrawAlignment(Askel@Global[1], 1);
+    TextDrawColor(Askel@Global[1], 100);
+    TextDrawSetShadow(Askel@Global[1], 0);
+    TextDrawSetOutline(Askel@Global[1], 0);
+    TextDrawBackgroundColor(Askel@Global[1], 255);
+    TextDrawFont(Askel@Global[1], 4);
+    TextDrawSetProportional(Askel@Global[1], 1);
+
+    Askel@Global[2] = TextDrawCreate(2.000, 281.000, "LD_SPAC:white");
+    TextDrawTextSize(Askel@Global[2], 114.000, 47.000);
+    TextDrawAlignment(Askel@Global[2], 1);
+    TextDrawColor(Askel@Global[2], 488651263);
+    TextDrawSetShadow(Askel@Global[2], 0);
+    TextDrawSetOutline(Askel@Global[2], 0);
+    TextDrawBackgroundColor(Askel@Global[2], 255);
+    TextDrawFont(Askel@Global[2], 4);
+    TextDrawSetProportional(Askel@Global[2], 1);
+
+    Askel@Global[3] = TextDrawCreate(60.000, 283.000, "[ y~Asuransi Keliling~w ]");
+    TextDrawLetterSize(Askel@Global[3], 0.159, 1.299);
+    TextDrawAlignment(Askel@Global[3], 2);
+    TextDrawColor(Askel@Global[3], -1);
+    TextDrawSetShadow(Askel@Global[3], 0);
+    TextDrawSetOutline(Askel@Global[3], 0);
+    TextDrawBackgroundColor(Askel@Global[3], 150);
+    TextDrawFont(Askel@Global[3], 1);
+    TextDrawSetProportional(Askel@Global[3], 1);
+
+    Askel@Global[4] = TextDrawCreate(8.000, 296.000, "_");
+    TextDrawLetterSize(Askel@Global[4], 0.129, 1.199);
+    TextDrawTextSize(Askel@Global[4], 111.000, 0.000);
+    TextDrawAlignment(Askel@Global[4], 1);
+    TextDrawColor(Askel@Global[4], -1);
+    TextDrawSetShadow(Askel@Global[4], 0);
+    TextDrawSetOutline(Askel@Global[4], 0);
+    TextDrawBackgroundColor(Askel@Global[4], 150);
+    TextDrawFont(Askel@Global[4], 1);
+    TextDrawSetProportional(Askel@Global[4], 1);
+
+    Askel@Global[5] = TextDrawCreate(2.000, 281.000, "LD_SPAC:white");
+    TextDrawTextSize(Askel@Global[5], 2.000, 47.000);
+    TextDrawAlignment(Askel@Global[5], 1);
+    TextDrawColor(Askel@Global[5], -1);
+    TextDrawSetShadow(Askel@Global[5], 0);
+    TextDrawSetOutline(Askel@Global[5], 0);
+    TextDrawBackgroundColor(Askel@Global[5], 255);
+    TextDrawFont(Askel@Global[5], 4);
+    TextDrawSetProportional(Askel@Global[5], 1);
+
+    Askel@Global[6] = TextDrawCreate(114.000, 281.000, "LD_SPAC:white");
+    TextDrawTextSize(Askel@Global[6], 2.000, 47.000);
+    TextDrawAlignment(Askel@Global[6], 1);
+    TextDrawColor(Askel@Global[6], -1);
+    TextDrawSetShadow(Askel@Global[6], 0);
+    TextDrawSetOutline(Askel@Global[6], 0);
+    TextDrawBackgroundColor(Askel@Global[6], 255);
+    TextDrawFont(Askel@Global[6], 4);
+    TextDrawSetProportional(Askel@Global[6], 1);
+
+    Askel@Global[7] = TextDrawCreate(93.000, 281.000, "LD_SPAC:white");
+    TextDrawTextSize(Askel@Global[7], 21.000, 3.000);
+    TextDrawAlignment(Askel@Global[7], 1);
+    TextDrawColor(Askel@Global[7], -1);
+    TextDrawSetShadow(Askel@Global[7], 0);
+    TextDrawSetOutline(Askel@Global[7], 0);
+    TextDrawBackgroundColor(Askel@Global[7], 255);
+    TextDrawFont(Askel@Global[7], 4);
+    TextDrawSetProportional(Askel@Global[7], 1);
+
+    Askel@Global[8] = TextDrawCreate(4.000, 281.000, "LD_SPAC:white");
+    TextDrawTextSize(Askel@Global[8], 21.000, 3.000);
+    TextDrawAlignment(Askel@Global[8], 1);
+    TextDrawColor(Askel@Global[8], -1);
+    TextDrawSetShadow(Askel@Global[8], 0);
+    TextDrawSetOutline(Askel@Global[8], 0);
+    TextDrawBackgroundColor(Askel@Global[8], 255);
+    TextDrawFont(Askel@Global[8], 4);
+    TextDrawSetProportional(Askel@Global[8], 1);
+
+    Askel@Global[9] = TextDrawCreate(4.000, 325.000, "LD_SPAC:white");
+    TextDrawTextSize(Askel@Global[9], 21.000, 3.000);
+    TextDrawAlignment(Askel@Global[9], 1);
+    TextDrawColor(Askel@Global[9], -1);
+    TextDrawSetShadow(Askel@Global[9], 0);
+    TextDrawSetOutline(Askel@Global[9], 0);
+    TextDrawBackgroundColor(Askel@Global[9], 255);
+    TextDrawFont(Askel@Global[9], 4);
+    TextDrawSetProportional(Askel@Global[9], 1);
+
+    Askel@Global[10] = TextDrawCreate(93.000, 325.000, "LD_SPAC:white");
+    TextDrawTextSize(Askel@Global[10], 21.000, 3.000);
+    TextDrawAlignment(Askel@Global[10], 1);
+    TextDrawColor(Askel@Global[10], -1);
+    TextDrawSetShadow(Askel@Global[10], 0);
+    TextDrawSetOutline(Askel@Global[10], 0);
+    TextDrawBackgroundColor(Askel@Global[10], 255);
+    TextDrawFont(Askel@Global[10], 4);
+    TextDrawSetProportional(Askel@Global[10], 1);
+
+}

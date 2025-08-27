@@ -1,0 +1,11 @@
+CreateExtBus()
+{
+	
+}
+
+/*
+RemoveExtBus(playerid)
+{
+	
+}
+*/

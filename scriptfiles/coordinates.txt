@@ -1,0 +1,106 @@
+
+SetPlayerPos(playerid, 1483.154785,-1756.937744,13.736878);
+SetPlayerFacingAngle(playerid, 175.186386);
+Judul : cityhall
+SetPlayerPos(playerid, 1139.669189,-1695.843750,14.014966);
+SetPlayerFacingAngle(playerid, 18.016918);
+Judul : sapd
+SetPlayerPos(playerid, 2003.723754,-1443.117919,13.562394);
+SetPlayerFacingAngle(playerid, 306.785156);
+Judul : samd
+SetPlayerPos(playerid, 208.145614,-254.009185,1.597932);
+SetPlayerFacingAngle(playerid, 357.566741);
+Judul : mechanic
+SetPlayerPos(playerid, 342.543365,-96.290649,1.369909);
+SetPlayerFacingAngle(playerid, 289.321960);
+Judul : asuransi
+SetPlayerPos(playerid, 559.372314,-1815.664916,6.075510);
+SetPlayerFacingAngle(playerid, 108.779991);
+Judul : food vendor
+SetPlayerPos(playerid, 2862.896728,-1961.174438,10.937087);
+SetPlayerFacingAngle(playerid, 238.835296);
+Judul : job fair
+SetPlayerPos(playerid, 1070.605224,-1765.693847,13.369536);
+SetPlayerFacingAngle(playerid, 33.707004);
+Judul : showroom
+SetPlayerPos(playerid, 2078.491943,-2033.320556,13.546875);
+SetPlayerFacingAngle(playerid, 92.695137);
+Judul : Gudang Warlok
+SetPlayerPos(playerid, 1129.356689,-1426.836425,15.797985);
+SetPlayerFacingAngle(playerid, 4.524847);
+Judul : megamall
+SetPlayerPos(playerid, 1130.339477,-2037.112426,69.023292);
+SetPlayerFacingAngle(playerid, 90.922080);
+Judul : disnaker
+SetPlayerPos(playerid, 1682.556152,-2248.682128,13.554983);
+SetPlayerFacingAngle(playerid, 199.607971);
+Judul : Internastional
+SetPlayerPos(playerid, 1462.056274,-1031.137207,23.656250);
+SetPlayerFacingAngle(playerid, 10.039498);
+Judul : bank
+SetPlayerPos(playerid, 1255.668090,-1827.728149,13.397333);
+SetPlayerFacingAngle(playerid, 27.043212);
+Judul : drive school
+SetPlayerPos(playerid, -847.501464,-2251.178710,22.739616);
+SetPlayerFacingAngle(playerid, 260.589324);
+Judul : tambangbatu
+SetPlayerPos(playerid, -761.376037,-2239.026367,26.530178);
+SetPlayerFacingAngle(playerid, 279.387939);
+Judul : cucibatu
+SetPlayerPos(playerid, -797.836608,-2275.932128,43.296417);
+SetPlayerFacingAngle(playerid, 103.376480);
+Judul : olahbatu
+SetPlayerPos(playerid, 1935.743408,-2100.763427,1013.468750);
+SetPlayerFacingAngle(playerid, 90.449920);
+Judul : buat benang
+SetPlayerPos(playerid, 1953.718505,-2099.230712,1017.689636);
+SetPlayerFacingAngle(playerid, 277.031127);
+Judul : buat kain1
+SetPlayerPos(playerid, 1953.714355,-2104.150634,1017.689636);
+SetPlayerFacingAngle(playerid, 265.607635);
+Judul : buat kain2
+SetPlayerPos(playerid, 1953.717895,-2108.722656,1017.689636);
+SetPlayerFacingAngle(playerid, 270.662872);
+Judul : buat kain3
+SetPlayerPos(playerid, 1953.713623,-2113.488281,1017.689636);
+SetPlayerFacingAngle(playerid, 272.041534);
+Judul : buat kain4
+SetPlayerPos(playerid, 1950.036621,-2110.907470,1017.689636);
+SetPlayerFacingAngle(playerid, 91.959243);
+Judul : buat pakaian1
+SetPlayerPos(playerid, 1950.040405,-2107.943603,1017.689636);
+SetPlayerFacingAngle(playerid, 84.146743);
+Judul : buat pakaian2
+SetPlayerPos(playerid, 1950.039306,-2105.057861,1017.689636);
+SetPlayerFacingAngle(playerid, 84.606307);
+Judul : buat pakaian3
+SetPlayerPos(playerid, 1950.036499,-2101.701416,1017.689636);
+SetPlayerFacingAngle(playerid, 107.124755);
+Judul : buat pakaian4
+SetPlayerPos(playerid, 1982.407104,-2066.835205,13.535199);
+SetPlayerFacingAngle(playerid, 2.738096);
+Judul : kantor penjahit
+SetPlayerPos(playerid, 307.279388,1138.384887,8.585937);
+SetPlayerFacingAngle(playerid, 248.077728);
+Judul : pemerah
+SetPlayerPos(playerid, -598.167602,-2359.218261,28.138463);
+SetPlayerFacingAngle(playerid, 16.459547);
+Judul : hutan kayu
+SetPlayerPos(playerid, -382.653808,-1426.560424,26.237884);
+SetPlayerFacingAngle(playerid, 105.154594);
+Judul : pemeblian bibit
+SetPlayerPos(playerid, -405.899139,-1385.407226,23.651691);
+SetPlayerFacingAngle(playerid, 29.097457);
+Judul : tanam bibit
+SetPlayerPos(playerid, 1530.788696,25.285085,24.135414);
+SetPlayerFacingAngle(playerid, 187.120895);
+Judul : kandang ayam
+SetPlayerPos(playerid, -1032.406860,-1025.620239,129.218750);
+SetPlayerFacingAngle(playerid, 87.166694);
+Judul : gudang ayam ayam
+SetPlayerPos(playerid, -82.211425,-1133.094726,1.078125);
+SetPlayerFacingAngle(playerid, 87.166694);
+Judul : trucker job
+SetPlayerPos(playerid, -265.907257,-2158.017822,28.857172);
+SetPlayerFacingAngle(playerid, 114.805328);
+Judul : production

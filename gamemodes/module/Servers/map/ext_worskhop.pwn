@@ -1,0 +1,13 @@
+CreateExtWorkshop()
+{
+	
+	
+}
+
+RemoveExtWorkshop(playerid)
+{
+	
+	
+
+}
+		

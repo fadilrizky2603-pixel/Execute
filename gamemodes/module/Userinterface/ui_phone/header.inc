@@ -1,0 +1,9 @@
+new PlayerText: HomeScreen[MAX_PLAYERS][95];
+new PlayerText: TaxiMenu[MAX_PLAYERS][49];
+new PlayerText: GwTelpon[MAX_PLAYERS][27];
+new PlayerText: DiaTelpon[MAX_PLAYERS][29];
+new PlayerText: SettingsMenu[MAX_PLAYERS][62];
+new PlayerText: BankMenu[MAX_PLAYERS][50];
+new PlayerText: XMenu[MAX_PLAYERS][55];
+new PlayerText: NotifX[MAX_PLAYERS][26];
+new PlayerText: LockMenu[MAX_PLAYERS][39];

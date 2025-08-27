@@ -1,0 +1,9 @@
+CreateExtMafia()
+{
+
+}
+
+RemoveExtMafia(playerid)
+{
+	
+}

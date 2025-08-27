@@ -1,0 +1,13 @@
+
+
+CreateExtGangs()
+{
+	
+}
+
+
+RemoveExtGangs(playerid)
+{
+		
+}
+

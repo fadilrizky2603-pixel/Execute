@@ -1,0 +1,10 @@
+Createmapinganbaru()
+{
+
+}
+
+
+RemoveAll(playerid)
+{
+
+}

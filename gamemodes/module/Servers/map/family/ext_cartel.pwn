@@ -1,0 +1,12 @@
+
+
+CreateExtCartel()
+{
+	
+
+}
+
+RemoveExtCartel(playerid)
+{
+	
+}

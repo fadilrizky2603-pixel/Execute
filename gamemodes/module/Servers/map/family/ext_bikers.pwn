@@ -1,0 +1,9 @@
+CreateExtBikers()
+{
+
+}
+
+RemoveExtBikers(playerid)
+{
+
+}

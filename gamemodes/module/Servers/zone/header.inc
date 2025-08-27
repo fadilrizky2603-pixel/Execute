@@ -1,0 +1,1 @@
+new eaData[MAX_PLAYERS][E_AREA];

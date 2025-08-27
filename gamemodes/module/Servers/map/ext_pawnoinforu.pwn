@@ -1,0 +1,11 @@
+ExtPawnoInfoRu()
+{
+
+}
+
+/*
+RemoveExtPawnoInfoRu(playerid)
+{
+	
+}
+*/

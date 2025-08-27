@@ -1,0 +1,11 @@
+CreateExtSags()
+{
+	
+}
+
+/*
+RemoveExtSags(playerid)
+{
+	
+}
+*/

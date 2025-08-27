@@ -1,0 +1,1 @@
+new PlayerText: InfoJobs[MAX_PLAYERS][4];

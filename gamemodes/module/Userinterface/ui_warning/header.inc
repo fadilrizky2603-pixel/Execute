@@ -1,0 +1,1 @@
+new PlayerText: ALERTTD[MAX_PLAYERS][16];
