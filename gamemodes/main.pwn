@@ -16,10 +16,10 @@
 #include <a_mysql>
 #include <a_zones>
 
-#include <YSI_Coding\y_timers>
-#include <YSI_Coding\y_va>
-#include <YSI_Coding\y_inline>
-#include <YSI_Server\y_colours\y_colours_x11def>
+#include <YSI_Coding/y_timers>
+#include <YSI_Coding/y_va>
+#include <YSI_Coding/y_inline>
+#include <YSI_Server/y_colours/y_colours_x11def>
 
 #include <Pawn.CMD>
 #include <strlib>
