@@ -10,7 +10,6 @@
 #define SERVER_BOT      "LP:RP"
 #define SERVER_NAME     "Kampung Indo Roleplay | #KamiSayangIndo"
 
-#include <crashdetect>
 #include <a_samp>
 #undef MAX_PLAYERS
 #define MAX_PLAYERS	50
