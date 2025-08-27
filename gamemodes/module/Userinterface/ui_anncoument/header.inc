@@ -1,1 +1,0 @@
-new PlayerText: ANNOUNCEMENT[MAX_PLAYERS][13];

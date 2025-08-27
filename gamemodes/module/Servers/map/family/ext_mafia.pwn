@@ -1,9 +1,0 @@
-CreateExtMafia()
-{
-
-}
-
-RemoveExtMafia(playerid)
-{
-	
-}

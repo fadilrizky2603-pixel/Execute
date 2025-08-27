@@ -1,5 +1,0 @@
-#include "./module/Dynamic/pedagang/header.inc"
-#include "./module/Dynamic/pedagang/native.inc"
-#include "./module/Dynamic/pedagang/function.inc"
-#include "./module/Dynamic/pedagang/hook.inc"
-#include "./module/Dynamic/pedagang/cmd.inc"

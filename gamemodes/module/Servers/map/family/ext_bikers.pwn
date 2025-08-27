@@ -1,9 +1,0 @@
-CreateExtBikers()
-{
-
-}
-
-RemoveExtBikers(playerid)
-{
-
-}

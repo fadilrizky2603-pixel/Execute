@@ -1,0 +1,5 @@
+#include "resources/[f-core]/vehiclemod/header.pwn"
+#include "resources/[f-core]/vehiclemod/function.pwn"
+#include "resources/[f-core]/vehiclemod/callbacks.pwn"
+#include "resources/[f-core]/vehiclemod/cmd.pwn"
+#include "resources/[f-core]/vehiclemod/dialog.pwn"

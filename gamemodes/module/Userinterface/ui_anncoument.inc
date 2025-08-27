@@ -1,5 +1,0 @@
-#include "./module/Userinterface/ui_anncoument/header.inc"
-#include "./module/Userinterface/ui_anncoument/stock.inc"
-#include "./module/Userinterface/ui_anncoument/hook.inc"
-#include "./module/Userinterface/ui_anncoument/function.inc"
-#include "./module/Userinterface/ui_anncoument/cmd.inc"

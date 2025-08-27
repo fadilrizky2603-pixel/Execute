@@ -1,1 +1,0 @@
-#define			 MAX_CALLBACK_STR			34

@@ -1,1 +1,0 @@
-new PlayerText:SpawnMenu[MAX_PLAYERS][36];

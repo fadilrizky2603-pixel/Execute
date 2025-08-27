@@ -1,1039 +1,667 @@
-/*
- *	Cinematic Camera Node Editor v2.6.1
- *		Added in CameraMover version 2!
- *		Allows server devs to easily edit camera nodes.
- *      Now has a full project editor.
- *
- *	~Southclaw
- */
+//This is a tool that lets you create cinematic camera movements at a constant speed.
+//Created by Flashhiee/UnuAlex for the 'Pimp my Map' series on youtube.
+//https://www.youtube.com/playlist?list=PLXU6QQ9_3_d5NP-0JnRDjJW7krfypJBjv
+#define FILTERSCRIPT
+
 #include <a_samp>
+
+#include <YSI\y_iterate>
+#include <YSI\y_commands>
+#include <YSI\y_master>
+#include <streamer>
 #include <sscanf2>
-#include <CameraMover>
+#pragma dynamic 500000
 
-#define INDEX_FILE		"Cameras/index.txt"
-#define strcpy(%0,%1)	strcat((%0[0] = '\0', %0), %1)
+//Defines down bellow
 
-// Set up your camera speed defaults here
-#define CAM_SPEED       (10.0)	// Standard speed
-#define CAM_HI_SPEED    (40.0)	// When pressing SPRINT (Space default)
-#define CAM_LO_SPEED    (3.0)	// When pressing WALK (Alt default)
+#define SCM SendClientMessage
+#define d_Cam 6969 //Edit this in case it conflicts with other dialogs
 
-new
-    SelectedCamera[MAX_PLAYERS],
-	bool:gPlayerEditing[MAX_PLAYERS],
-	bool:gPlayerEditingNode[MAX_PLAYERS],
-	freeCamUsed[MAX_PLAYERS],
-	freeCamObj[MAX_PLAYERS],
+#define MAX_CAMS 100 //Edit this in case you want less/more cameras
 
-	indexData[MAX_CAMERAS][MAX_CAMFILE_LEN];
+#define c_blue 0x5CA6BFFF
+#define c_green 0x5EDB3BFF
+#define c_yellow 0xD6DE3EFF
+#define white_col "{FFFFFF}"
 
-forward editor_OnCamMove(playerid, node, bool:cont);
+//Variables down bellow
 
+new DB:db_Cam;
+new cams;
 
-#define DIALOG_OFFSET 1000
-enum
+new Float: p_LastPos[MAX_PLAYERS];
+
+new bool:Debug = false;
+
+new editMode[MAX_PLAYERS];
+new editId[MAX_PLAYERS] = -1;
+
+enum c_Info
 {
-	d_MainMenu = DIALOG_OFFSET,
-	d_NewCamName,
-	d_ProjectOptions,
-	d_ExportDialog,
+	c_Created,
+	c_Interpolated,
+	Float:c_Posx,
+	Float:c_Posy,
+	Float:c_Posz,
+	Float:c_Intposx,
+	Float:c_Intposy,
+	Float:c_Intposz,
+	c_Postime,
+	Float:c_Lookx,
+	Float:c_Looky,
+	Float:c_Lookz,
+	Float:c_Intlookx,
+	Float:c_Intlooky,
+	Float:c_Intlookz,
+	c_Looktime
+};
 
-	d_NodeID,
-	d_MoveTime,
-	d_WaitTime,
-	d_MoveType,
+new camInfo[MAX_CAMS][c_Info];
 
-	d_confirmNodeCommit,
+new Text3D:label_Pos[MAX_CAMS];
+new obj_Pos[MAX_CAMS][2];
+new obj_Look[MAX_CAMS][2];
 
-	d_ConfirmQuit
-}
+//Forwards down bellow
 
-new
-	PlayerText:cam_buttonBack,
-	PlayerText:cam_boxBackground,
-	PlayerText:cam_arrowLeft,
-	PlayerText:cam_arrowRight,
-
-	PlayerText:cam_row1,
-	PlayerText:cam_row2,
-	PlayerText:cam_row3,
-	PlayerText:cam_row4,
-
-	PlayerText:cam_row1Data,
-	PlayerText:cam_row2Data,
-	PlayerText:cam_row3Data,
-	PlayerText:cam_row4Data,
-
-	PlayerText:cam_buttonEdit,
-	PlayerText:cam_buttonSave,
-	PlayerText:cam_buttonDelt,
-	PlayerText:cam_buttonPrev,
-	PlayerText:cam_buttonAddN;
+forward LoadCamDb();
+forward SaveCamera(camid, stuff);
+forward CreateGizmos(camid);
+forward DeleteGizmos(camid);
+forward UpdateGizmo(gizmo, camid);
+forward ToggleGizmos(bool:tog);
+forward UpdateSpectator(playerid,camid);
+forward Export(string[]);
 
 public OnFilterScriptInit()
 {
-	FormatMainMenu(0);
+
+	LoadCamDb();
+
+	print("\n--------------------------------------");
+	print(" Camera Editor loaded! Created by: Flashiee/UnuAlex");
+	print("--------------------------------------\n");
 	return 1;
 }
-stock FormatMainMenu(playerid)
+
+public OnFilterScriptExit()
 {
-	new
-		File:idxFile,
-		line[64],
-		idx,
-		strTitle[32],
-		strList[MAX_CAMERAS*(MAX_CAMFILE_LEN+1)];
+	return 1;
+}
 
-	strList = "New Camera...\n";
+//Commands down bellow
 
-	if(!fexist(INDEX_FILE))
+CMD:newcam (playerid, params[])
+{
+	#pragma unused params
+	cams ++;
+	if(cams >= MAX_CAMS) { SCM(playerid,c_blue,"(!) Max cameras limit excedeed!"); cams --; return 1; }
+	new query[512], Float:p_Pos[3]; GetPlayerPos(playerid,p_Pos[0],p_Pos[1],p_Pos[2]);
+	format(query,sizeof(query),"INSERT INTO `cameras` (`camid`,`interpolated`,`posx`,`posy`,`posz`,`intposx`,`intposy`,`intposz`,`postime`,`lookx`,`looky`,`lookz`,`intlookx`,`intlooky`,`intlookz`,`looktime`) VALUES('%d','%d','%f','%f','%f','%f','%f','%f','%d','%f','%f','%f','%f','%f','%f','%d')",
+	cams,0,p_Pos[0],p_Pos[1],p_Pos[2],p_Pos[0],p_Pos[1],p_Pos[2],1000,p_Pos[0]+5,p_Pos[1],p_Pos[2],p_Pos[0]+5,p_Pos[1],p_Pos[2],1000);
+	db_free_result(db_query(db_Cam,query));
+	camInfo[cams][c_Interpolated] = 0; camInfo[cams][c_Postime] = 1000; camInfo[cams][c_Looktime] = 1000;
+	
+	camInfo[cams][c_Posx] = p_Pos[0]; camInfo[cams][c_Posy] = p_Pos[1]; camInfo[cams][c_Posz] = p_Pos[2];
+	camInfo[cams][c_Intposx] = p_Pos[0]; camInfo[cams][c_Intposy] = p_Pos[1]; camInfo[cams][c_Intposz] = p_Pos[2];
+
+	camInfo[cams][c_Lookx] = p_Pos[0]+5; camInfo[cams][c_Looky] = p_Pos[1]; camInfo[cams][c_Lookz] = p_Pos[2];
+	camInfo[cams][c_Intlookx] = p_Pos[0]+5; camInfo[cams][c_Intlooky] = p_Pos[1]; camInfo[cams][c_Intlookz] = p_Pos[2];
+	CreateGizmos(cams); camInfo[cams][c_Created] = 1;
+	SCM(playerid,c_green,"* New camera created.");
+	return 1;
+}
+
+CMD:camint (playerid, params[])
+{
+	new camid;
+	if(sscanf(params,"d",camid))return SCM(playerid,c_blue,"(!) Please type: /camint [camera id]");
+	if(camid < 1 || camid > cams)return SCM(playerid,c_blue,"(!) This camera does not exist!");
+	editId[playerid] = camid;
+	ShowPlayerDialog(playerid,d_Cam,DIALOG_STYLE_LIST,"Edit Interpolation","1. No interpolation\n2. Interpolate camera pos\n3. Interpolate camera look at\n4. Interpolate both","Select","Close");
+	return 1;
+}
+
+CMD:editcam (playerid, params[])
+{
+	if(GetPlayerState(playerid) == 9)return SCM(playerid,c_blue,"(!) You can't edit in camera mode!");
+	if(editMode[playerid] != 0)return SCM(playerid,c_blue,"(!) You are already editing something. Please finish editing or type /editstop!");
+	new camid;
+	if(sscanf(params,"d",camid))return SCM(playerid,c_blue,"(!) Please type: /editcam [camera id]");
+	if(camid < 1 || camid > cams)return SCM(playerid,c_blue,"(!) This camera does not exist!");
+	if(!IsValidDynamicObject(obj_Pos[camid][0]))return SCM(playerid,c_blue,"(!) This object is not valid!");
+	SetDynamicObjectRot(obj_Pos[camid][0],0,0,0);
+	new str[24];
+	format(str,sizeof(str),"* Editing camera %d.",camid);
+	SCM(playerid,c_green,str);
+	editMode[playerid] = 1;
+	editId[playerid] = camid;
+	EditDynamicObject(playerid,obj_Pos[camid][0]);
+	return 1;
+}
+
+CMD:editlook (playerid, params[])
+{
+    if(GetPlayerState(playerid) == 9)return SCM(playerid,c_blue,"(!) You can't edit in camera mode!");
+	if(editMode[playerid] != 0)return SCM(playerid,c_blue,"(!) You are already editing something. Please finish editing or type /editstop!");
+	new camid;
+	if(sscanf(params,"d",camid))return SCM(playerid,c_blue,"(!) Please type: /editlook [camera id]");
+	if(camid < 1 || camid > cams)return SCM(playerid,c_blue,"(!) This camera does not exist!");
+	if(!IsValidDynamicObject(obj_Look[camid][0]))return SCM(playerid,c_blue,"(!) This object is not valid!");
+	new str[24];
+	format(str,sizeof(str),"* Editing look at from camera %d.",camid);
+	SCM(playerid,c_green,str);
+	editMode[playerid] = 2;
+	editId[playerid] = camid;
+	EditDynamicObject(playerid,obj_Look[camid][0]);
+	return 1;
+}
+
+CMD:ieditcam (playerid, params[])
+{
+    if(GetPlayerState(playerid) == 9)return SCM(playerid,c_blue,"(!) You can't edit in camera mode!");
+	if(editMode[playerid] != 0)return SCM(playerid,c_blue,"(!) You are already editing something. Please finish editing or type /editstop!");
+	new camid;
+	if(sscanf(params,"d",camid))return SCM(playerid,c_blue,"(!) Please type: /ieditcam [camera id]");
+	if(camInfo[camid][c_Interpolated] == 1 || camInfo[camid][c_Interpolated] == 3)
 	{
-		idxFile = fopen(INDEX_FILE, io_write); // If the file doesn't exist, create it now in case it's used later
-		if(idxFile)fclose(idxFile);
-		else SendClientMessage(playerid, 0xFF0000FF, "ERROR: Directory Not Found. Please create a folder called \"Cameras\" inside \"scriptfiles\".");
-	}
-	else // But if it does, read each line and add that to the list
-	{
-		idxFile = fopen(INDEX_FILE, io_read);
-		while(fread(idxFile, line))
-		{
-		    strcat(strList, line);
-		    line[strlen(line)-2] = EOS; // Remove the "\n" this would need to be "-1" if using linux
-		    strcpy(indexData[idx], line);
-		    idx++;
-		}
-		fclose(idxFile);
-	}
-
-	format(strTitle, 32, "Total Camera Projects: %d", idx);
-	ShowPlayerDialog(playerid, d_MainMenu, DIALOG_STYLE_LIST, strTitle, strList, "Accept", "Close");
-}
-
-CreateCameraMover(playerid, camname[])
-{
-	new
-		File:idxFile,
-		File:camFile,
-		tmpStr[MAX_CAMFILE_LEN+2],
-		newData[128],
-		iLoop,
-
-		Float:camX, Float:camY, Float:camZ,
-		Float:vecX, Float:vecY, Float:vecZ;
-
-	if(!fexist(INDEX_FILE))idxFile = fopen(INDEX_FILE, io_write);
-	else idxFile = fopen(INDEX_FILE, io_append);
-
-	strcat(tmpStr, camname);
-	strcat(tmpStr, "\r\n");
-
-	while(strlen(indexData[iLoop][0]))iLoop++;
-	strcpy(indexData[iLoop], camname);
-	fwrite(idxFile, tmpStr);
-	fclose(idxFile);
-
-
-	GetPlayerCameraPos(playerid, camX, camY, camZ);
-	GetPlayerCameraFrontVector(playerid, vecX, vecY, vecZ);
-	vecX+=camX;
-	vecY+=camY;
-	vecZ+=camZ;
-
-	format(tmpStr, MAX_CAMFILE_LEN+2, CAMERA_FILE, camname);
-	camFile = fopen(tmpStr, io_write);
-
-	format(newData, 128, "%f, %f, %f, %f, %f, %f, %d, %d, %d", camX, camY, camZ, vecX, vecY, vecZ, DEFAULT_MOVETIME, DEFAULT_WAITTIME, DEFAULT_MOVETYPE);
-	fwrite(camFile, newData);
-	fclose(camFile);
-}
-
-stock EditCameraMover(playerid, camera)
-{
-	gPlayerCamData[playerid][p_CamID] = camera;
-	gPlayerEditing[playerid]=true;
-
-    camera_LoadTextDraws(playerid); // Need a check to see if the player has textdraws loaded (Maybe checking if the first ID is an invalid textdraw ID)
-	SelectTextDraw(playerid, 0xFFFF00FF);
-	ToggleEditGUI(playerid, true);
-	JumpToNode(playerid, 0);
-}
-stock ExitEditing(playerid)
-{
-	gPlayerCamData[playerid][p_CamID] = -1;
-    gPlayerEditing[playerid] = false;
-	CancelSelectTextDraw(playerid);
-    SetCameraBehindPlayer(playerid);
-	ToggleEditGUI(playerid, false);
-	TogglePlayerControllable(playerid, true);
-}
-
-public editor_OnCamMove(playerid, node, bool:cont)
-{
-	gPlayerCamData[playerid][p_Node]++;
-	UpdateGUI(playerid);
-}
-
-SaveCameraMover(playerid, exportmode=0)
-{
-	new
-		tmpCam = gPlayerCamData[playerid][p_CamID],
-		tmpNode,
-		File:camFile_Main,
-		File:camFile_Backup,
-		tmpFilename[64],
-		tmpLine[256],
-		tmpData[3];
-
-	// Create the backup file, then write everything from the main one into the new one
-	format(tmpFilename, 64, "%s.bak", camFilename[tmpCam]);
-
-	camFile_Backup=fopen(tmpFilename, io_write);
-	camFile_Main = fopen(camFilename[tmpCam], io_write);
-
-	while(fread(camFile_Main, tmpLine))fwrite(camFile_Backup, tmpLine);
-
-	fclose(camFile_Backup);
-	fclose(camFile_Main);
-
-	// Now, close that backup file, write all the variable data into the main file
-
-	camFile_Main = fopen(camFilename[tmpCam], io_write);
-	while (tmpNode <= camMaxNodes[tmpCam])
-	{
-		if(!exportmode)
-		{
-		    if (camData[tmpCam][tmpNode][cam_moveTime] == tmpData[0] &&
-		    	camData[tmpCam][tmpNode][cam_waitTime] == tmpData[1] &&
-		    	camData[tmpCam][tmpNode][cam_moveType] == tmpData[2] )
-		    { // All the data is the same as the last one, ignore it and leave optionals blank
-				format(tmpLine, 256, "%f, %f, %f, %f, %f, %f\r\n",
-				    camData[tmpCam][tmpNode][cam_cPosX],
-				    camData[tmpCam][tmpNode][cam_cPosY],
-				    camData[tmpCam][tmpNode][cam_cPosZ],
-				    camData[tmpCam][tmpNode][cam_lPosX],
-				    camData[tmpCam][tmpNode][cam_lPosY],
-				    camData[tmpCam][tmpNode][cam_lPosZ] );
-	    	}
-	    	else
-			{ // Data is different, write the new data to the line
-				format(tmpLine, 256, "%f, %f, %f, %f, %f, %f, %d, %d, %d\r\n",
-				    camData[tmpCam][tmpNode][cam_cPosX],
-				    camData[tmpCam][tmpNode][cam_cPosY],
-				    camData[tmpCam][tmpNode][cam_cPosZ],
-				    camData[tmpCam][tmpNode][cam_lPosX],
-				    camData[tmpCam][tmpNode][cam_lPosY],
-				    camData[tmpCam][tmpNode][cam_lPosZ],
-				    camData[tmpCam][tmpNode][cam_moveTime],
-				    camData[tmpCam][tmpNode][cam_waitTime],
-				    camData[tmpCam][tmpNode][cam_moveType] );
-
-				tmpData[0] = camData[tmpCam][tmpNode][cam_moveTime];
-				tmpData[1] = camData[tmpCam][tmpNode][cam_waitTime];
-				tmpData[2] = camData[tmpCam][tmpNode][cam_moveType];
-			}
-		}
-		else
-		{
-			if(tmpNode == camMaxNodes[tmpCam])strcpy(tmpLine, "\r\n");
-			else
-			{
-				format(tmpLine, 256,
-					"InterpolateCameraPos(playerid, %f, %f, %f, %f, %f, %f, %d, %d);\r\n\
-					InterpolateCameraLookAt(playerid, %f, %f, %f, %f, %f, %f, %d, %d);\r\n",
-
-				    camData[tmpCam][tmpNode][cam_cPosX],
-				    camData[tmpCam][tmpNode][cam_cPosY],
-				    camData[tmpCam][tmpNode][cam_cPosZ],
-				    camData[tmpCam][tmpNode+1][cam_cPosX],
-				    camData[tmpCam][tmpNode+1][cam_cPosY],
-				    camData[tmpCam][tmpNode+1][cam_cPosZ],
-				    camData[tmpCam][tmpNode][cam_moveTime],
-				    camData[tmpCam][tmpNode][cam_moveType],
-
-				    camData[tmpCam][tmpNode][cam_lPosX],
-				    camData[tmpCam][tmpNode][cam_lPosY],
-				    camData[tmpCam][tmpNode][cam_lPosZ],
-				    camData[tmpCam][tmpNode+1][cam_lPosX],
-				    camData[tmpCam][tmpNode+1][cam_lPosY],
-				    camData[tmpCam][tmpNode+1][cam_lPosZ],
-				    camData[tmpCam][tmpNode][cam_moveTime],
-				    camData[tmpCam][tmpNode][cam_moveType] );
-			}
-		}
-		fwrite(camFile_Main, tmpLine);
-		tmpNode++;
-	}
-	fclose(camFile_Main);
-}
-ToggleEditGUI(playerid, toggle)
-{
-	if(toggle)
-	{
-	    PlayerTextDrawShow(playerid, cam_buttonBack);
-		PlayerTextDrawShow(playerid, cam_boxBackground);
-		PlayerTextDrawShow(playerid, cam_arrowLeft);
-		PlayerTextDrawShow(playerid, cam_arrowRight);
-
-		PlayerTextDrawShow(playerid, cam_row1);
-		PlayerTextDrawShow(playerid, cam_row2);
-		PlayerTextDrawShow(playerid, cam_row3);
-		PlayerTextDrawShow(playerid, cam_row4);
-
-		PlayerTextDrawShow(playerid, cam_row1Data);
-		PlayerTextDrawShow(playerid, cam_row2Data);
-		PlayerTextDrawShow(playerid, cam_row3Data);
-		PlayerTextDrawShow(playerid, cam_row4Data);
-
-		PlayerTextDrawShow(playerid, cam_buttonEdit);
-		PlayerTextDrawShow(playerid, cam_buttonSave);
-		PlayerTextDrawShow(playerid, cam_buttonDelt);
-		PlayerTextDrawShow(playerid, cam_buttonPrev);
-		PlayerTextDrawShow(playerid, cam_buttonAddN);
-	}
-	else
-	{
-	    PlayerTextDrawHide(playerid, cam_buttonBack);
-		PlayerTextDrawHide(playerid, cam_boxBackground);
-		PlayerTextDrawHide(playerid, cam_arrowLeft);
-		PlayerTextDrawHide(playerid, cam_arrowRight);
-
-		PlayerTextDrawHide(playerid, cam_row1);
-		PlayerTextDrawHide(playerid, cam_row2);
-		PlayerTextDrawHide(playerid, cam_row3);
-		PlayerTextDrawHide(playerid, cam_row4);
-
-		PlayerTextDrawHide(playerid, cam_row1Data);
-		PlayerTextDrawHide(playerid, cam_row2Data);
-		PlayerTextDrawHide(playerid, cam_row3Data);
-		PlayerTextDrawHide(playerid, cam_row4Data);
-
-		PlayerTextDrawHide(playerid, cam_buttonEdit);
-		PlayerTextDrawHide(playerid, cam_buttonSave);
-		PlayerTextDrawHide(playerid, cam_buttonDelt);
-		PlayerTextDrawHide(playerid, cam_buttonPrev);
-		PlayerTextDrawHide(playerid, cam_buttonAddN);
-	}
-}
-UpdateGUI(playerid)
-{
-	new
-		tmpCam = gPlayerCamData[playerid][p_CamID],
-		tmpNode = gPlayerCamData[playerid][p_Node],
-		dataStr[16],
-		MoveTypeName[3][5]={"NONE", "MOVE", "CUT"};
-
-	format(dataStr, 16, "%d/%d", tmpNode, camMaxNodes[tmpCam]);
-	PlayerTextDrawSetString(playerid, cam_row1Data, dataStr);
-	PlayerTextDrawShow(playerid, cam_row1Data);
-
-	format(dataStr, 16, "%d", camData[tmpCam][tmpNode][cam_moveTime]);
-	PlayerTextDrawSetString(playerid, cam_row2Data, dataStr);
-	PlayerTextDrawShow(playerid, cam_row2Data);
-
-	format(dataStr, 16, "%d", camData[tmpCam][tmpNode][cam_waitTime]);
-	PlayerTextDrawSetString(playerid, cam_row3Data, dataStr);
-	PlayerTextDrawShow(playerid, cam_row3Data);
-
-	format(dataStr, 16, "%s(%d)", MoveTypeName[ _:camData[tmpCam][tmpNode][cam_moveType] ], camData[tmpCam][tmpNode][cam_moveType]);
-	PlayerTextDrawSetString(playerid, cam_row4Data, dataStr);
-	PlayerTextDrawShow(playerid, cam_row4Data);
-}
-JumpToNode(playerid, node)
-{
-	new
-		camera = gPlayerCamData[playerid][p_CamID];
-
-	SetPlayerCameraPos(playerid, camData[camera][node][cam_cPosX], camData[camera][node][cam_cPosY], camData[camera][node][cam_cPosZ]);
-	SetPlayerCameraLookAt(playerid,	camData[camera][node][cam_lPosX], camData[camera][node][cam_lPosY], camData[camera][node][cam_lPosZ]);
-
-	gPlayerCamData[playerid][p_Node] = node;
-	UpdateGUI(playerid);
-}
-
-EditCurrentNode(playerid)
-{
-	gPlayerEditingNode[playerid] = true;
-	EnterFreeCam(playerid);
-}
-CommitCurrentNode(playerid)
-{
-	new
-		tmpCam = gPlayerCamData[playerid][p_CamID],
-		tmpNode = gPlayerCamData[playerid][p_Node],
-		Float:vecX, Float:vecY, Float:vecZ;
-
-	GetPlayerCameraPos(playerid, camData[tmpCam][tmpNode][cam_cPosX], camData[tmpCam][tmpNode][cam_cPosY], camData[tmpCam][tmpNode][cam_cPosZ]);
-	GetPlayerCameraFrontVector(playerid, vecX, vecY, vecZ);
-
-	camData[tmpCam][tmpNode][cam_lPosX] = camData[tmpCam][tmpNode][cam_cPosX]+(vecX*4); // x4 just to give the LookAt node a little distance, I didn't know if this would affect anything
-	camData[tmpCam][tmpNode][cam_lPosY] = camData[tmpCam][tmpNode][cam_cPosY]+(vecY*4);
-	camData[tmpCam][tmpNode][cam_lPosZ] = camData[tmpCam][tmpNode][cam_cPosZ]+(vecZ*4);
-
-	gPlayerEditingNode[playerid] = false;
-	ExitFreeCam(playerid);
-	UpdateGUI(playerid);
-}
-CancelCurrentNodeEdit(playerid)
-{
-	JumpToNode(playerid, gPlayerCamData[playerid][p_Node]);
-
-	gPlayerEditingNode[playerid] = false;
-	ExitFreeCam(playerid);
-}
-
-EnterFreeCam(playerid)
-{
-	new
-		tmpCam = gPlayerCamData[playerid][p_CamID],
-		tmpNode = gPlayerCamData[playerid][p_Node];
-
-    freeCamUsed[playerid] = true;
-	TogglePlayerControllable(playerid, true);
-	SetCameraBehindPlayer(playerid);
-	ApplyAnimation(playerid, "CARRY", "crry_prtial", 1.0, 0, 0, 0, 1, 0);
-	CancelSelectTextDraw(playerid);
-	ToggleEditGUI(playerid, false);
-
-	freeCamObj[playerid] = CreateObject(19300, camData[tmpCam][tmpNode][cam_cPosX], camData[tmpCam][tmpNode][cam_cPosY], camData[tmpCam][tmpNode][cam_cPosZ], 0.0, 0.0, 0.0);
-	AttachCameraToObject(playerid, freeCamObj[playerid]);
-}
-ExitFreeCam(playerid)
-{
-	JumpToNode(playerid, gPlayerCamData[playerid][p_Node]);
-
-    freeCamUsed[playerid] = false;
-	DestroyObject(freeCamObj[playerid]);
-	ToggleEditGUI(playerid, true);
-	SelectTextDraw(playerid, 0xFFFF00FF);
-}
-
-
-EditNewNode(playerid)
-{
-	new
-		tmpCam = gPlayerCamData[playerid][p_CamID],
-		tmpNode = gPlayerCamData[playerid][p_Node];
-
-	ShiftNodeArray(tmpCam, tmpNode);
-	EditCurrentNode(playerid);
-	gPlayerCamData[playerid][p_Node]++;
-}
-DeleteCurrentNode(playerid)
-{
-	new
-		tmpCam = gPlayerCamData[playerid][p_CamID],
-		tmpNode = gPlayerCamData[playerid][p_Node];
-
-	ShiftNodeArray(tmpCam, tmpNode, 1);
-	JumpToNode(playerid, tmpNode);
-}
-ShiftNodeArray(camera, startnode, direction=0)
-{
-	if(direction == 0)
-	{
-		new iLoop = camMaxNodes[camera]++; // Assign the value then increment it because we are adding another cell
-		while(iLoop>=startnode) // Loop from the last node to the startnode
-		{
-		    for(new e;e<MAX_CAMDATA;e++) // Shift all the data to the next node cell
-		    {
-				camData[camera][iLoop+1][CAM_DATA_ENUM:e] = camData[camera][iLoop][CAM_DATA_ENUM:e];
-			}
-		    iLoop--;
-		}
-	}
-	else
-	{
-		new iLoop = startnode;
-		while(iLoop<=camMaxNodes[camera]) // Loop from the startnode to the last node
-		{
-		    for(new e;e<MAX_CAMDATA;e++)
-				camData[camera][iLoop][CAM_DATA_ENUM:e] = camData[camera][iLoop+1][CAM_DATA_ENUM:e];
-
-		    iLoop++;
-		}
-		for(new e;e<MAX_CAMDATA;e++)camData[camera][camMaxNodes[camera]][CAM_DATA_ENUM:e] = 0;
-		// I didn't want to have to call two loops
-		// But I'm not sure how do to it otherwise!
-		// I'll try a backwards loop when I'm more awake!
-		// A backwards loop would be able to blank the last cell easier
-		camMaxNodes[camera]--; // Decrement the max value, we just removed a cell
-	}
-}
-/* Debugging!
-	I used it to test the above function to ensure it
-	was shifting the right data without deleting stuff!
-
-PRINTALLNODE(c)
-{
-	new n;
-	while(n<MAX_CAMNODE)
-	{
-	    printf("%02d: %d, %d, %d", n, camData[c][n][cam_moveTime], camData[c][n][cam_waitTime], camData[c][n][cam_moveType]);
-	    n++;
-	}
-}
-*/
-
-public OnPlayerUpdate(playerid)
-{
-	if(gPlayerEditingNode[playerid] && freeCamUsed[playerid])
-	{
-		new
-			k,
-			ud,
-			lr,
-			Float:camX,
-			Float:camY,
-			Float:camZ,
-			Float:vecX,
-			Float:vecY,
-			Float:vecZ,
-
-			Float:angR,
-			Float:angE,
-
-			Float:speed = CAM_SPEED;
-
-		GetPlayerKeys(playerid, k, ud, lr);
-		GetPlayerCameraPos(playerid, camX, camY, camZ);
-		GetPlayerCameraFrontVector(playerid, vecX, vecY, vecZ);
-
-		angR = 90-(atan2(vecY, vecX));
-		if(angR<0.0)angR=360.0+angR;
-		angE = -(floatabs(atan2(floatsqroot(floatpower(vecX, 2.0) + floatpower(vecY, 2.0)), vecZ))-90.0);
-
-		if(k==KEY_JUMP)
-		{
-		    speed = CAM_HI_SPEED;
-		}
-		if(k==KEY_WALK)
-		{
-		    speed = CAM_LO_SPEED;
-		}
-
-		if(ud==KEY_UP)
-		{
-			GetXYZFromAngle(camX, camY, camZ, angR, angE, 50.0);
-			MoveObject(freeCamObj[playerid], camX, camY, camZ, speed);
-		}
-		if(ud==KEY_DOWN)
-		{
-			GetXYZFromAngle(camX, camY, camZ, angR, angE, -50.0);
-			MoveObject(freeCamObj[playerid], camX, camY, camZ, speed);
-		}
-		if(lr==KEY_LEFT)
-		{
-			GetXYFromAngle(camX, camY, -angR+90.0, 50.0);
-			MoveObject(freeCamObj[playerid], camX, camY, camZ, speed);
-		}
-		if(lr==KEY_RIGHT)
-		{
-			GetXYFromAngle(camX, camY, -angR+90.0, -50.0);
-			MoveObject(freeCamObj[playerid], camX, camY, camZ, speed);
-		}
-		if(k==KEY_SPRINT)
-		{
-			MoveObject(freeCamObj[playerid], camX, camY, camZ+50.0, speed);
-		}
-		if(k==KEY_CROUCH)
-		{
-			MoveObject(freeCamObj[playerid], camX, camY, camZ-50.0, speed);
-		}
-		if(ud!=KEY_UP && ud!=KEY_DOWN && lr!=KEY_LEFT && lr!=KEY_RIGHT && k!=KEY_SPRINT && k!=KEY_CROUCH)StopObject(freeCamObj[playerid]);
+		if(camid < 1 || camid > cams)return SCM(playerid,c_blue,"(!) This camera does not exist!");
+		if(!IsValidDynamicObject(obj_Pos[camid][1]))return SCM(playerid,c_blue,"(!) This object is not valid!");
+		SetDynamicObjectRot(obj_Pos[camid][1],0,0,0);
+		new str[24];
+		format(str,sizeof(str),"* Editing interpolated camera %d.",camid);
+		SCM(playerid,c_green,str);
+		editMode[playerid] = 3;
+		editId[playerid] = camid;
+		EditDynamicObject(playerid,obj_Pos[camid][1]);
 	}
 	return 1;
 }
-public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
+
+CMD:ieditlook (playerid, params[])
 {
-	if(gPlayerEditingNode[playerid])
+    if(GetPlayerState(playerid) == 9)return SCM(playerid,c_blue,"(!) You can't edit in camera mode!");
+	if(editMode[playerid] != 0)return SCM(playerid,c_blue,"(!) You are already editing something. Please finish editing or type /editstop!");
+	new camid;
+	if(sscanf(params,"d",camid))return SCM(playerid,c_blue,"(!) Please type: /ieditlook [camera id]");
+	if(camInfo[camid][c_Interpolated] == 2 || camInfo[camid][c_Interpolated] == 3)
 	{
-		if(newkeys & KEY_FIRE)
-		{
-			new strInfo[64];
-			format(strInfo, 64, "Apply changes to node %d?", gPlayerCamData[playerid][p_Node]);
-			ShowPlayerDialog(playerid, d_confirmNodeCommit, DIALOG_STYLE_MSGBOX, "Confirm changes?", strInfo, "Apply", "Reset");
-		}
-		if(newkeys & 16)CancelCurrentNodeEdit(playerid);
+		if(camid < 1 || camid > cams)return SCM(playerid,c_blue,"(!) This camera does not exist!");
+		if(!IsValidDynamicObject(obj_Look[camid][1]))return SCM(playerid,c_blue,"(!) This object is not valid!");
+		
+		new str[24];
+		format(str,sizeof(str),"* Editing interpolated look at from camera %d.",camid);
+		SCM(playerid,c_green,str);
+		editMode[playerid] = 4;
+		editId[playerid] = camid;
+		EditDynamicObject(playerid,obj_Look[camid][1]);
 	}
+	return 1;
 }
-public OnPlayerClickPlayerTextDraw(playerid, PlayerText:playertextid)
+
+CMD:camtime (playerid, params[])
 {
-	if(playertextid == cam_buttonBack)ShowPlayerDialog(playerid, d_ConfirmQuit, DIALOG_STYLE_MSGBOX, "Exit Editing", "Are you sure you want to quit? All unsaved data will be lost!", "Ok", "Cancel");
-
-	if(playertextid == cam_buttonEdit)EditCurrentNode(playerid);
-	if(playertextid == cam_buttonSave)ShowPlayerDialog(playerid, d_ExportDialog, DIALOG_STYLE_LIST, "Export Camera As...", "Sequencer Data File\nInterpolate Functions", "Accept", "Cancel");
-	if(playertextid == cam_buttonDelt)DeleteCurrentNode(playerid);
-	if(playertextid == cam_buttonPrev)MoveCameraToNextNode(playerid, true);
-	if(playertextid == cam_buttonAddN)
+	new camid, ammount;
+	if(sscanf(params,"dd",camid,ammount))return SCM(playerid,c_blue,"(!) Please type: /camtime [camera id][time(seconds)]");
+	if(camInfo[camid][c_Interpolated] == 1 || camInfo[camid][c_Interpolated] == 3)
 	{
-	    if(GetCameraMaxNodes(gPlayerCamData[playerid][p_CamID]) < MAX_CAMNODE-1)EditNewNode(playerid);
-	    else SendClientMessage(playerid, 0xFF0000FF, "Node limit reached, increase constant <MAX_CAMNODE> in script.");
+	    if(camid < 1 || camid > cams)return SCM(playerid,c_blue,"(!) This camera does not exist!");
+	    camInfo[camid][c_Postime] = ammount*1000;
+	    SCM(playerid,c_green,"* Camera position interpolation time updated.");
+	    SaveCamera(camid,0);
 	}
-
-	if(playertextid == cam_arrowLeft)
-	{
-	    new
-	        tmpCam = gPlayerCamData[playerid][p_CamID],
-			tmpNode = gPlayerCamData[playerid][p_Node] - 1;
-
-	    if(tmpNode < 0)tmpNode = camMaxNodes[tmpCam];
-		JumpToNode(playerid, tmpNode);
-	}
-	if(playertextid == cam_arrowRight)
-	{
-	    new
-	        tmpCam = gPlayerCamData[playerid][p_CamID],
-			tmpNode = gPlayerCamData[playerid][p_Node] + 1;
-
-	    if(tmpNode > camMaxNodes[tmpCam])tmpNode = 0;
-		JumpToNode(playerid, tmpNode);
-	}
-	if(playertextid == cam_row1Data)ShowPlayerDialog(playerid, d_NodeID, DIALOG_STYLE_INPUT, "Node ID", "Type a node ID to jump to", "Back", "Accept");
-	if(playertextid == cam_row2Data)ShowPlayerDialog(playerid, d_MoveTime, DIALOG_STYLE_INPUT, "Move Time", "Time to move to next node (in milliseconds)", "Back", "Accept");
-	if(playertextid == cam_row3Data)ShowPlayerDialog(playerid, d_WaitTime, DIALOG_STYLE_INPUT, "Wait Time", "Time to wait before moving to next node (in milliseconds)", "Back", "Accept");
-	if(playertextid == cam_row4Data)ShowPlayerDialog(playerid, d_MoveType, DIALOG_STYLE_MSGBOX, "Cut Type", "Select a Camera Cut Type\nMove: Smoothly moves to the next node.\nJump: Jumps to the next node.", "Move", "Jump");
+	else SCM(playerid,c_blue,"(!) You camera needs to be in interpolation mode 2 or 4!");
+	return 1;
 }
-public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
+
+CMD:looktime (playerid, params[])
 {
-	if(dialogid == d_MainMenu)
+	new camid, ammount;
+	if(sscanf(params,"dd",camid,ammount))return SCM(playerid,c_blue,"(!) Please type: /looktime [camera id][time(seconds)]");
+	if(camInfo[camid][c_Interpolated] == 2 || camInfo[camid][c_Interpolated] == 3)
 	{
-	    if(response)
+	    if(camid < 1 || camid > cams)return SCM(playerid,c_blue,"(!) This camera does not exist!");
+	    camInfo[camid][c_Looktime] = ammount*1000;
+	    SCM(playerid,c_green,"* Camera look at interpolation time updated.");
+	    SaveCamera(camid,0);
+	}
+	else SCM(playerid,c_blue,"(!) You camera needs to be in interpolation mode 3 or 4!");
+	return 1;
+}
+
+CMD:playcam (playerid, params[])
+{
+	new camid;
+	if(sscanf(params,"d",camid))return SCM(playerid,c_blue,"(!) Please type: /playcam [camera id]");
+	if(camid < 1 || camid > cams)return SCM(playerid,c_blue,"(!) This camera does not exist!");
+	if(GetPlayerState(playerid) == 0)return SCM(playerid,c_blue,"(!) Invalid state!");
+	if(GetPlayerState(playerid) != 9)
+	{
+		GetPlayerPos(playerid,p_LastPos[0],p_LastPos[1],p_LastPos[2]);
+		TogglePlayerSpectating(playerid,true);
+		ToggleGizmos(false);
+	}
+	new str[26];
+	format(str,sizeof(str),"* Playing camera %d...",camid);
+	SCM(playerid,c_green,str);
+	SetTimerEx("UpdateSpectator", 1000, false, "dd",playerid,camid);
+	
+	return 1;
+}
+
+CMD:stopcam (playerid, params[])
+{
+	#pragma unused params
+	if(GetPlayerState(playerid) == 9)
+	{
+	    TogglePlayerSpectating(playerid,false);
+	    ToggleGizmos(true);
+	    SetTimerEx("UpdateSpectator", 1000, false, "dd",playerid,0);
+	}
+	return 1;
+}
+
+
+CMD:exportcam (playerid, params[])
+{
+	new camid;
+	if(sscanf(params,"d",camid))return SCM(playerid,c_blue,"(!) Please type: /exportcam [camera id]");
+	if(camid < 1 || camid > cams)return SCM(playerid,c_blue,"(!) This camera does not exist!");
+	new str[256];
+	format(str,sizeof(str),"SetPlayerCameraPos(playerid,%f,%f,%f);",camInfo[camid][c_Posx],camInfo[camid][c_Posy],camInfo[camid][c_Posz]);
+	Export(str);
+	format(str,sizeof(str),"SetPlayerCameraLookAt(playerid,%f,%f,%f);",camInfo[camid][c_Lookx],camInfo[camid][c_Looky],camInfo[camid][c_Lookz]);
+	Export(str);
+	if(camInfo[camid][c_Interpolated] == 1)
+	{
+ 		format(str,sizeof(str),"InterpolateCameraPos(playerid,%f,%f,%f,%f,%f,%f,%d,CAMERA_MOVE);",camInfo[camid][c_Posx],camInfo[camid][c_Posy],camInfo[camid][c_Posz],camInfo[camid][c_Intposx],camInfo[camid][c_Intposy],camInfo[camid][c_Intposz],camInfo[camid][c_Postime]);
+ 		Export(str);
+	}
+	else if(camInfo[camid][c_Interpolated] == 2)
+	{
+ 		format(str,sizeof(str),"InterpolateCameraLookAt(playerid,%f,%f,%f,%f,%f,%f,%d,CAMERA_MOVE);",camInfo[camid][c_Lookx],camInfo[camid][c_Looky],camInfo[camid][c_Lookz],camInfo[camid][c_Intlookx],camInfo[camid][c_Intlooky],camInfo[camid][c_Intlookz],camInfo[camid][c_Looktime]);
+ 		Export(str);
+	}
+	else if(camInfo[camid][c_Interpolated] == 3)
+	{
+ 		format(str,sizeof(str),"InterpolateCameraPos(playerid,%f,%f,%f,%f,%f,%f,%d,CAMERA_MOVE);",camInfo[camid][c_Posx],camInfo[camid][c_Posy],camInfo[camid][c_Posz],camInfo[camid][c_Intposx],camInfo[camid][c_Intposy],camInfo[camid][c_Intposz],camInfo[camid][c_Postime]);
+ 		Export(str);
+   		format(str,sizeof(str),"InterpolateCameraLookAt(playerid,%f,%f,%f,%f,%f,%f,%d,CAMERA_MOVE);",camInfo[camid][c_Lookx],camInfo[camid][c_Looky],camInfo[camid][c_Lookz],camInfo[camid][c_Intlookx],camInfo[camid][c_Intlooky],camInfo[camid][c_Intlookz],camInfo[camid][c_Looktime]);
+ 		Export(str);
+	}
+	Export("=================================================================");
+	SCM(playerid,c_green,"* Camera code lines exported. Please check scriptfiles/cameraexports.txt!");
+	return 1;
+}
+
+CMD:chelp (playerid, params[])
+{
+	#pragma unused params
+	ShowPlayerDialog(playerid,d_Cam+1,DIALOG_STYLE_LIST,"Camera Help","1./newcam\n2./camint\n3./editcam\n4./editlook\n5./ieditcam\n6./ieditlook\n7./camtime\n8./looktime\n9./playcam\n10./stopcam\n11./exportcam\n12./editstop","Select","Cancel");
+	return 1;
+}
+
+CMD:editstop (playerid, params[])
+{
+	#pragma unused params
+	SCM(playerid,c_green,"* Camera editor has been stoped.");
+	editMode[playerid] = 0;
+	return 1;
+}
+
+//Callbacks down bellow
+
+public LoadCamDb()
+{
+	//Creating database if does not exist
+	db_Cam = db_open("camdb.db");
+	db_free_result(db_query(db_Cam,"CREATE TABLE IF NOT EXISTS `cameras` (`camid`,`interpolated`,`posx`,`posy`,`posz`,`intposx`,`intposy`,`intposz`,`postime`,`lookx`,`looky`,`lookz`,`intlookx`,`intlooky`,`intlookz`,`looktime`)"));
+	
+	//Loading the data
+	for(new i=1; i < MAX_CAMS; i++)
+	{
+	    new query[48], DBResult:res;
+ 		format(query,sizeof(query),"SELECT * FROM `cameras` WHERE `camid` = '%d'",i);
+        res = db_query(db_Cam,query);
+        
+        if(db_num_rows(res))
+        {
+            cams ++;
+            new field[50];
+            
+            db_get_field_assoc(res, "interpolated", field, 50 );
+            camInfo[i][c_Interpolated] = strval(field);
+            db_get_field_assoc(res, "postime", field, 50 );
+            camInfo[i][c_Postime] = strval(field);
+            db_get_field_assoc(res, "looktime", field, 50 );
+            camInfo[i][c_Looktime] = strval(field);
+            
+            db_get_field_assoc(res, "posx", field, 50 );
+            camInfo[i][c_Posx] = floatstr(field);
+            db_get_field_assoc(res, "posy", field, 50 );
+            camInfo[i][c_Posy] = floatstr(field);
+            db_get_field_assoc(res, "posz", field, 50 );
+            camInfo[i][c_Posz] = floatstr(field);
+            db_get_field_assoc(res, "intposx", field, 50 );
+            camInfo[i][c_Intposx] = floatstr(field);
+            db_get_field_assoc(res, "intposy", field, 50 );
+            camInfo[i][c_Intposy] = floatstr(field);
+            db_get_field_assoc(res, "intposz", field, 50 );
+            camInfo[i][c_Intposz] = floatstr(field);
+
+            db_get_field_assoc(res, "lookx", field, 50 );
+            camInfo[i][c_Lookx] = floatstr(field);
+            db_get_field_assoc(res, "looky", field, 50 );
+            camInfo[i][c_Looky] = floatstr(field);
+            db_get_field_assoc(res, "lookz", field, 50 );
+            camInfo[i][c_Lookz] = floatstr(field);
+            db_get_field_assoc(res, "intlookx", field, 50 );
+            camInfo[i][c_Intlookx] = floatstr(field);
+            db_get_field_assoc(res, "intlooky", field, 50 );
+            camInfo[i][c_Intlooky] = floatstr(field);
+            db_get_field_assoc(res, "intlookz", field, 50 );
+            camInfo[i][c_Intlookz] = floatstr(field);
+            camInfo[i][c_Created] = 1;
+            CreateGizmos(i);
+            
+			if(Debug)
+			    printf("[Debug]:Camera %d loaded.",i);
+        }
+        else break;
+	}
+	return 1;
+}
+
+public SaveCamera(camid, stuff)
+{
+	if(stuff == 0)
+	{
+		new query[128];
+		format(query,sizeof(query),"UPDATE `cameras` SET `interpolated` = '%d', `postime` = '%d', `looktime` = '%d' WHERE `camid` = '%d'",
+		camInfo[camid][c_Interpolated],camInfo[camid][c_Postime],camInfo[camid][c_Looktime],camid);
+		db_free_result(db_query(db_Cam,query));
+	}
+	else if(stuff == 1)
+	{
+	    new query[256];
+		format(query,sizeof(query),"UPDATE `cameras` SET `posx` = '%f', `posy` = '%f', `posz` = '%f', `intposx` = '%f', `intposy` = '%f', `intposz` = '%f' WHERE `camid` = '%d'",
+		camInfo[camid][c_Posx],camInfo[camid][c_Posy],camInfo[camid][c_Posz],camInfo[camid][c_Intposx],camInfo[camid][c_Intposy],camInfo[camid][c_Intposz],camid);
+		db_free_result(db_query(db_Cam,query));
+	}
+	else if(stuff == 2)
+	{
+	    new query[256];
+		format(query,sizeof(query),"UPDATE `cameras` SET `lookx` = '%f', `looky` = '%f', `lookz` = '%f', `intlookx` = '%f', `intlooky` = '%f', `intlookz` = '%f' WHERE `camid` = '%d'",
+		camInfo[camid][c_Lookx], camInfo[camid][c_Looky], camInfo[camid][c_Lookz], camInfo[camid][c_Intlookx], camInfo[camid][c_Intlooky], camInfo[camid][c_Intlookz],camid);
+		db_free_result(db_query(db_Cam,query));
+	}
+	return 1;
+}
+
+public CreateGizmos(camid)
+{
+	if(!IsValidDynamicObject(obj_Pos[camid][0])) obj_Pos[camid][0] = CreateDynamicObject(367,camInfo[camid][c_Posx],camInfo[camid][c_Posy],camInfo[camid][c_Posz],0,0,0,-1,-1,-1,300,300);
+    if(!IsValidDynamicObject(obj_Look[camid][0]))obj_Look[camid][0] = CreateDynamicObject(1318,camInfo[camid][c_Lookx],camInfo[camid][c_Looky],camInfo[camid][c_Lookz],0,0,0);
+    SetObjectFaceCoords3D(obj_Pos[camid][0],camInfo[camid][c_Lookx],camInfo[camid][c_Looky],camInfo[camid][c_Lookz],0,-90,90);
+    
+    if(!IsValidDynamic3DTextLabel(label_Pos[camid]))
+    {
+	    new str[32];
+	    format(str,sizeof(str),"cam Id: "white_col"%d",camid);
+	    label_Pos[camid] = CreateDynamic3DTextLabel(str,c_green,camInfo[camid][c_Posx],camInfo[camid][c_Posy],camInfo[camid][c_Posz],20.0,INVALID_PLAYER_ID,INVALID_VEHICLE_ID,0,-1,-1,-1,5.0);
+	}
+	
+	if(camInfo[camid][c_Interpolated] == 1)//If camera interpolates the position
+ 	{
+  		obj_Pos[camid][1] = CreateDynamicObject(367,camInfo[camid][c_Intposx],camInfo[camid][c_Intposy],camInfo[camid][c_Intposz],0,0,0,-1,-1,-1,300,300);
+    	SetDynamicObjectMaterial(obj_Pos[camid][1], 0, -1, "none", "none", 0xFFFF0000);
+     	SetObjectFaceCoords3D(obj_Pos[camid][1],camInfo[camid][c_Lookx],camInfo[camid][c_Looky],camInfo[camid][c_Lookz],0,-90,90);
+	}
+	else if(camInfo[camid][c_Interpolated] == 2)//If camera interpolates the look at
+ 	{
+  		obj_Look[camid][1] = CreateDynamicObject(1318,camInfo[camid][c_Intlookx],camInfo[camid][c_Intlooky],camInfo[camid][c_Intlookz],0,0,0,-1,-1,-1,300,300);
+    	SetDynamicObjectMaterial(obj_Look[camid][1], 0, -1, "none", "none", 0xFFFF0000);
+	}
+	else if(camInfo[camid][c_Interpolated] == 3)//If camera interpolates the position and look at`
+ 	{
+  		obj_Pos[camid][1] = CreateDynamicObject(367,camInfo[camid][c_Intposx],camInfo[camid][c_Intposy],camInfo[camid][c_Intposz],0,0,0,-1,-1,-1,300,300);
+    	SetDynamicObjectMaterial(obj_Pos[camid][1], 0, -1, "none", "none", 0xFFFF0000);
+     	SetObjectFaceCoords3D(obj_Pos[camid][1],camInfo[camid][c_Intlookx],camInfo[camid][c_Intlooky],camInfo[camid][c_Intlookz],0,-90,90);
+      	obj_Look[camid][1] = CreateDynamicObject(1318,camInfo[camid][c_Intlookx],camInfo[camid][c_Intlooky],camInfo[camid][c_Intlookz],0,0,0,-1,-1,-1,300,300);
+       	SetDynamicObjectMaterial(obj_Look[camid][1], 0, -1, "none", "none", 0xFFFF0000);
+	}
+	if(Debug)
+		printf("[Debug]: All the gizmos for camera %d got created.", camid);
+	return 1;
+}
+
+public DeleteGizmos(camid)
+{
+    DestroyDynamicObject(obj_Pos[camid][0]);
+    DestroyDynamicObject(obj_Look[camid][0]);
+    DestroyDynamic3DTextLabel(label_Pos[camid]);
+    if(camInfo[camid][c_Interpolated] == 1) DestroyDynamicObject(obj_Pos[camid][1]);
+    if(camInfo[camid][c_Interpolated] == 2) DestroyDynamicObject(obj_Look[camid][1]);
+    if(camInfo[camid][c_Interpolated] == 3) DestroyDynamicObject(obj_Pos[camid][1]), DestroyDynamicObject(obj_Look[camid][1]);
+    if(Debug)
+        printf("[Debug]:All the gizmos for camera %d got destroyed.",camid);
+	return 1;
+}
+
+public UpdateGizmo(gizmo, camid)
+{
+	if(gizmo == 0)
+	{
+    	SetObjectFaceCoords3D(obj_Pos[camid][0],camInfo[camid][c_Lookx],camInfo[camid][c_Looky],camInfo[camid][c_Lookz],0,-90,90);
+        Streamer_SetFloatData(STREAMER_TYPE_3D_TEXT_LABEL, label_Pos[camid], E_STREAMER_X, camInfo[camid][c_Posx]);
+        Streamer_SetFloatData(STREAMER_TYPE_3D_TEXT_LABEL, label_Pos[camid], E_STREAMER_Y, camInfo[camid][c_Posy]);
+        Streamer_SetFloatData(STREAMER_TYPE_3D_TEXT_LABEL, label_Pos[camid], E_STREAMER_Z, camInfo[camid][c_Posz]);
+    	if(Debug)
+	    	printf("[Debug]:Gizmos %d from camera %d updated.",gizmo,camid);
+	}
+	else if(gizmo == 1)
+	{
+ 		if(camInfo[camid][c_Interpolated] == 1)SetObjectFaceCoords3D(obj_Pos[camid][1],camInfo[camid][c_Lookx],camInfo[camid][c_Looky],camInfo[camid][c_Lookz],0,-90,90);
+   		else if(camInfo[camid][c_Interpolated] == 3)SetObjectFaceCoords3D(obj_Pos[camid][1],camInfo[camid][c_Intlookx],camInfo[camid][c_Intlooky],camInfo[camid][c_Intlookz],0,-90,90);
+    	if(Debug)
+    		printf("[Debug]:Gizmos %d from camera %d updated.",gizmo,camid);
+	}
+	return 1;
+}
+
+public ToggleGizmos(bool:tog)
+{
+	if(tog)
+	{
+	    for(new i = 0; i < MAX_CAMS; i++)
 	    {
-	        if(listitem==0)ShowPlayerDialog(playerid, d_NewCamName, DIALOG_STYLE_INPUT, "New Camera", "Enter the new camera name below.\nDo not use spaces.", "Accept", "Back");
-	        else
-			{
-			    SelectedCamera[playerid] = listitem-1;
-				ShowPlayerDialog(playerid, d_ProjectOptions, DIALOG_STYLE_LIST, "Options", "Edit Camera\nPreview Camera", "Accept", "Back");
-			}
+	        if(camInfo[i][c_Created] == 1)
+	        	CreateGizmos(i);
 	    }
 	}
-	if(dialogid == d_NewCamName)
+	else
 	{
-	    if(response)
+	    for(new i = 0; i < MAX_CAMS; i++)
 	    {
-	        if(strfind(inputtext, " ") == -1)
-			{
-				CreateCameraMover(playerid, inputtext);
-				FormatMainMenu(playerid);
-			}
-	        else ShowPlayerDialog(playerid, d_NewCamName, DIALOG_STYLE_INPUT, "New Camera", "Enter the new camera name below.\n{FF0000}Do not use spaces.", "Accept", "Back");
-	    }
-	    else FormatMainMenu(playerid);
-	}
-	if(dialogid == d_ProjectOptions)
-	{
-		if(response)
-		{
-			if(listitem == 0)EditCameraMover(playerid, LoadCameraMover(indexData[SelectedCamera[playerid]]));
-			if(listitem == 1)PlayCameraMover(playerid, LoadCameraMover(indexData[SelectedCamera[playerid]]));
-		}
-		else FormatMainMenu(playerid);
-	}
-	if(dialogid == d_ExportDialog)
-	{
-	    if(response)
-	    {
-			SaveCameraMover(playerid, listitem);
-			SendClientMessage(playerid, 0xFFFF00FF, "Camera saved!");
+            if(camInfo[i][c_Created] == 1)
+	        	DeleteGizmos(i);
 	    }
 	}
+	return 1;
+}
 
-	if(dialogid == d_NodeID)
+public UpdateSpectator(playerid,camid)
+{
+	if(GetPlayerState(playerid) == 9)
 	{
-	    new
-	        tmpCam = gPlayerCamData[playerid][p_CamID],
-			nextNode = strval(inputtext);
-	    if(0 <= nextNode < camMaxNodes[tmpCam])JumpToNode(playerid, nextNode);
-	    else
-	    {
-			SendClientMessage(playerid, 0xFF1100FF, "Invalid value entered");
-			ShowPlayerDialog(playerid, d_NodeID, DIALOG_STYLE_INPUT, "Node ID", "Type a node ID to jump to", "Back", "Accept");
-	    }
-	}
-	if(dialogid == d_MoveTime)
-	{
-	    new
-	        tmpCam = gPlayerCamData[playerid][p_CamID],
-	        tmpNode = gPlayerCamData[playerid][p_Node],
-			tmpMoveTime = strval(inputtext);
+		SetPlayerCameraPos(playerid,camInfo[camid][c_Posx],camInfo[camid][c_Posy],camInfo[camid][c_Posz]);
+		SetPlayerCameraLookAt(playerid,camInfo[camid][c_Lookx],camInfo[camid][c_Looky],camInfo[camid][c_Lookz]);
+		if(camInfo[camid][c_Interpolated] == 1)
+		{
+		    InterpolateCameraPos(playerid,camInfo[camid][c_Posx],camInfo[camid][c_Posy],camInfo[camid][c_Posz],camInfo[camid][c_Intposx],camInfo[camid][c_Intposy],camInfo[camid][c_Intposz],camInfo[camid][c_Postime],CAMERA_MOVE);
+		    //InterpolateCameraLookAt(playerid,camInfo[camid][c_Lookx],camInfo[camid][c_Looky],camInfo[camid][c_Lookz],camInfo[camid][c_Lookx],camInfo[camid][c_Looky],camInfo[camid][c_Lookz],camInfo[camid][c_Looktime],CAMERA_MOVE);
+		}
+		else if(camInfo[camid][c_Interpolated] == 2)
+		{
+		    InterpolateCameraLookAt(playerid,camInfo[camid][c_Lookx],camInfo[camid][c_Looky],camInfo[camid][c_Lookz],camInfo[camid][c_Intlookx],camInfo[camid][c_Intlooky],camInfo[camid][c_Intlookz],camInfo[camid][c_Looktime],CAMERA_MOVE);
+		}
+		else if(camInfo[camid][c_Interpolated] == 3)
+		{
+		    InterpolateCameraPos(playerid,camInfo[camid][c_Posx],camInfo[camid][c_Posy],camInfo[camid][c_Posz],camInfo[camid][c_Intposx],camInfo[camid][c_Intposy],camInfo[camid][c_Intposz],camInfo[camid][c_Postime],CAMERA_MOVE);
+		    InterpolateCameraLookAt(playerid,camInfo[camid][c_Lookx],camInfo[camid][c_Looky],camInfo[camid][c_Lookz],camInfo[camid][c_Intlookx],camInfo[camid][c_Intlooky],camInfo[camid][c_Intlookz],camInfo[camid][c_Looktime],CAMERA_MOVE);
+  		}
+ 	}
+	else SetPlayerPos(playerid,p_LastPos[0],p_LastPos[1],p_LastPos[2]), SetCameraBehindPlayer(playerid);
+	return 1;
+}
 
-		if(tmpMoveTime > 0)
-		{
-			camData[tmpCam][tmpNode][cam_moveTime] = tmpMoveTime;
-			UpdateGUI(playerid);
-		}
-		else
-		{
-			SendClientMessage(playerid, 0xFF1100FF, "Invalid value entered");
-			ShowPlayerDialog(playerid, d_MoveTime, DIALOG_STYLE_INPUT, "Move Time", "Time to move to next node (in milliseconds)", "Back", "Accept");
-		}
-	}
-	if(dialogid == d_WaitTime)
-	{
-	    new
-	        tmpCam = gPlayerCamData[playerid][p_CamID],
-	        tmpNode = gPlayerCamData[playerid][p_Node],
-			tmpWaitTime = strval(inputtext);
-
-		if(tmpWaitTime > 0)
-		{
-			camData[tmpCam][tmpNode][cam_waitTime] = tmpWaitTime;
-			UpdateGUI(playerid);
-		}
-		else
-		{
-			SendClientMessage(playerid, 0xFF1100FF, "Invalid value entered");
-			ShowPlayerDialog(playerid, d_WaitTime, DIALOG_STYLE_INPUT, "Wait Time", "Time to wait before moving to next node (in milliseconds)", "Back", "Accept");
-		}
-	}
-	if(dialogid == d_MoveType)
-	{
-	    new
-	        tmpCam = gPlayerCamData[playerid][p_CamID],
-	        tmpNode = gPlayerCamData[playerid][p_Node];
-
-		if(!response)
-		{
-			camData[tmpCam][tmpNode][cam_moveType] = CAMERA_MOVE;
-			UpdateGUI(playerid);
-		}
-		else
-		{
-			camData[tmpCam][tmpNode][cam_moveType] = CAMERA_CUT;
-			UpdateGUI(playerid);
-		}
-	}
-
-	if(dialogid == d_confirmNodeCommit)
-	{
-	    new
-	        tmpCam = gPlayerCamData[playerid][p_CamID],
-	        tmpNode = gPlayerCamData[playerid][p_Node];
-
-		if(response)CommitCurrentNode(playerid);
-		else
-		{
-		    SetObjectPos(freeCamObj[playerid],
-				camData[tmpCam][tmpNode][cam_cPosX],
-				camData[tmpCam][tmpNode][cam_cPosY],
-				camData[tmpCam][tmpNode][cam_cPosZ]);
-		}
-	}
-
-	if(dialogid == d_ConfirmQuit)
-	{
-	    if(response)
-	    {
-			ExitEditing(playerid);
-			FormatMainMenu(playerid);
-		}
-	}
+public Export(string[])
+{
+    new entry[256];
+    format(entry, sizeof(entry), "%s\n",string);
+    new File:hFile;
+    hFile = fopen("cameraexports.txt", io_append);
+    fwrite(hFile, entry);
+    fclose(hFile);
 }
 
 public OnPlayerConnect(playerid)
 {
-	camera_LoadTextDraws(playerid);
+	editMode[playerid] = 0;
+	editId[playerid] = -1;
 	return 1;
 }
-camera_LoadTextDraws(playerid)
+
+public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 {
-	// Background
-
-	cam_boxBackground = CreatePlayerTextDraw(playerid, 320.000000, 320.000000, "~n~~n~~n~~n~");
-	PlayerTextDrawAlignment(playerid, cam_boxBackground, 2);
-	PlayerTextDrawBackgroundColor(playerid, cam_boxBackground, 255);
-	PlayerTextDrawFont(playerid, cam_boxBackground, 1);
-	PlayerTextDrawLetterSize(playerid, cam_boxBackground, 0.500000, 2.200000);
-	PlayerTextDrawColor(playerid, cam_boxBackground, -1);
-	PlayerTextDrawSetOutline(playerid, cam_boxBackground, 0);
-	PlayerTextDrawSetProportional(playerid, cam_boxBackground, 1);
-	PlayerTextDrawSetShadow(playerid, cam_boxBackground, 1);
-	PlayerTextDrawUseBox(playerid, cam_boxBackground, 1);
-	PlayerTextDrawBoxColor(playerid, cam_boxBackground, 128);
-	PlayerTextDrawTextSize(playerid, cam_boxBackground, 380.000000, 300.000000);
-
-
-	// Node Switch
-
-	cam_arrowLeft = CreatePlayerTextDraw(playerid, 174.000000, 339.000000, "~<~");
-	PlayerTextDrawBackgroundColor(playerid, cam_arrowLeft, 255);
-	PlayerTextDrawFont(playerid, cam_arrowLeft, 1);
-	PlayerTextDrawLetterSize(playerid, cam_arrowLeft, 0.000000, 4.800001);
-	PlayerTextDrawColor(playerid, cam_arrowLeft, -1);
-	PlayerTextDrawSetOutline(playerid, cam_arrowLeft, 0);
-	PlayerTextDrawSetProportional(playerid, cam_arrowLeft, 1);
-	PlayerTextDrawSetShadow(playerid, cam_arrowLeft, 1);
-	PlayerTextDrawUseBox(playerid, cam_arrowLeft, 1);
-	PlayerTextDrawBoxColor(playerid, cam_arrowLeft, 6618980);
-	PlayerTextDrawTextSize(playerid, cam_arrowLeft, 210.000000, 58.000000);
-	PlayerTextDrawSetSelectable(playerid, cam_arrowLeft, true);
-
-	cam_arrowRight = CreatePlayerTextDraw(playerid, 432.000000, 339.000000, "~>~");
-	PlayerTextDrawBackgroundColor(playerid, cam_arrowRight, 255);
-	PlayerTextDrawFont(playerid, cam_arrowRight, 1);
-	PlayerTextDrawLetterSize(playerid, cam_arrowRight, 0.000000, 4.800001);
-	PlayerTextDrawColor(playerid, cam_arrowRight, -1);
-	PlayerTextDrawSetOutline(playerid, cam_arrowRight, 0);
-	PlayerTextDrawSetProportional(playerid, cam_arrowRight, 1);
-	PlayerTextDrawSetShadow(playerid, cam_arrowRight, 1);
-	PlayerTextDrawUseBox(playerid, cam_arrowRight, 1);
-	PlayerTextDrawBoxColor(playerid, cam_arrowRight, 6618980);
-	PlayerTextDrawTextSize(playerid, cam_arrowRight, 466.000000, 58.000000);
-	PlayerTextDrawSetSelectable(playerid, cam_arrowRight, true);
-
-
-	// Info
-
-	cam_row1 = CreatePlayerTextDraw(playerid, 240.000000, 325.000000, "Node:");
-	PlayerTextDrawBackgroundColor(playerid, cam_row1, 255);
-	PlayerTextDrawFont(playerid, cam_row1, 1);
-	PlayerTextDrawLetterSize(playerid, cam_row1, 0.300000, 1.000000);
-	PlayerTextDrawColor(playerid, cam_row1, -1);
-	PlayerTextDrawSetOutline(playerid, cam_row1, 0);
-	PlayerTextDrawSetProportional(playerid, cam_row1, 1);
-	PlayerTextDrawSetShadow(playerid, cam_row1, 1);
-	PlayerTextDrawUseBox(playerid, cam_row1, 1);
-	PlayerTextDrawBoxColor(playerid, cam_row1, 3955300);
-	PlayerTextDrawTextSize(playerid, cam_row1, 400.000000, 0.000000);
-
-	cam_row2 = CreatePlayerTextDraw(playerid, 240.000000, 342.000000, "Move Time (ms):");
-	PlayerTextDrawBackgroundColor(playerid, cam_row2, 255);
-	PlayerTextDrawFont(playerid, cam_row2, 1);
-	PlayerTextDrawLetterSize(playerid, cam_row2, 0.300000, 1.000000);
-	PlayerTextDrawColor(playerid, cam_row2, -1);
-	PlayerTextDrawSetOutline(playerid, cam_row2, 0);
-	PlayerTextDrawSetProportional(playerid, cam_row2, 1);
-	PlayerTextDrawSetShadow(playerid, cam_row2, 1);
-	PlayerTextDrawUseBox(playerid, cam_row2, 1);
-	PlayerTextDrawBoxColor(playerid, cam_row2, 3955300);
-	PlayerTextDrawTextSize(playerid, cam_row2, 400.000000, 0.000000);
-
-	cam_row3 = CreatePlayerTextDraw(playerid, 240.000000, 360.000000, "Wait Time (ms):");
-	PlayerTextDrawBackgroundColor(playerid, cam_row3, 255);
-	PlayerTextDrawFont(playerid, cam_row3, 1);
-	PlayerTextDrawLetterSize(playerid, cam_row3, 0.300000, 1.000000);
-	PlayerTextDrawColor(playerid, cam_row3, -1);
-	PlayerTextDrawSetOutline(playerid, cam_row3, 0);
-	PlayerTextDrawSetProportional(playerid, cam_row3, 1);
-	PlayerTextDrawSetShadow(playerid, cam_row3, 1);
-	PlayerTextDrawUseBox(playerid, cam_row3, 1);
-	PlayerTextDrawBoxColor(playerid, cam_row3, 3955300);
-	PlayerTextDrawTextSize(playerid, cam_row3, 400.000000, 0.000000);
-
-	cam_row4 = CreatePlayerTextDraw(playerid, 240.000000, 378.000000, "Cut Type:");
-	PlayerTextDrawBackgroundColor(playerid, cam_row4, 255);
-	PlayerTextDrawFont(playerid, cam_row4, 1);
-	PlayerTextDrawLetterSize(playerid, cam_row4, 0.300000, 1.000000);
-	PlayerTextDrawColor(playerid, cam_row4, -1);
-	PlayerTextDrawSetOutline(playerid, cam_row4, 0);
-	PlayerTextDrawSetProportional(playerid, cam_row4, 1);
-	PlayerTextDrawSetShadow(playerid, cam_row4, 1);
-	PlayerTextDrawUseBox(playerid, cam_row4, 1);
-	PlayerTextDrawBoxColor(playerid, cam_row4, 3955300);
-	PlayerTextDrawTextSize(playerid, cam_row4, 400.000000, 0.000000);
-
-
-	// Data fields
-
-	cam_row1Data = CreatePlayerTextDraw(playerid, 335.000000, 325.000000, "00");
-	PlayerTextDrawBackgroundColor(playerid, cam_row1Data, 255);
-	PlayerTextDrawFont(playerid, cam_row1Data, 1);
-	PlayerTextDrawLetterSize(playerid, cam_row1Data, 0.300000, 1.000000);
-	PlayerTextDrawColor(playerid, cam_row1Data, -1);
-	PlayerTextDrawSetOutline(playerid, cam_row1Data, 0);
-	PlayerTextDrawSetProportional(playerid, cam_row1Data, 1);
-	PlayerTextDrawSetShadow(playerid, cam_row1Data, 1);
-	PlayerTextDrawUseBox(playerid, cam_row1Data, 1);
-	PlayerTextDrawBoxColor(playerid, cam_row1Data, 3955300);
-	PlayerTextDrawTextSize(playerid, cam_row1Data, 400.000000, 14.000000);
-	PlayerTextDrawSetSelectable(playerid, cam_row1Data, true);
-
-	cam_row2Data = CreatePlayerTextDraw(playerid, 335.000000, 342.000000, "00000");
-	PlayerTextDrawBackgroundColor(playerid, cam_row2Data, 255);
-	PlayerTextDrawFont(playerid, cam_row2Data, 1);
-	PlayerTextDrawLetterSize(playerid, cam_row2Data, 0.300000, 1.000000);
-	PlayerTextDrawColor(playerid, cam_row2Data, -1);
-	PlayerTextDrawSetOutline(playerid, cam_row2Data, 0);
-	PlayerTextDrawSetProportional(playerid, cam_row2Data, 1);
-	PlayerTextDrawSetShadow(playerid, cam_row2Data, 1);
-	PlayerTextDrawUseBox(playerid, cam_row2Data, 1);
-	PlayerTextDrawBoxColor(playerid, cam_row2Data, 3955300);
-	PlayerTextDrawTextSize(playerid, cam_row2Data, 400.000000, 14.000000);
-	PlayerTextDrawSetSelectable(playerid, cam_row2Data, true);
-
-	cam_row3Data = CreatePlayerTextDraw(playerid, 335.000000, 360.000000, "00000");
-	PlayerTextDrawBackgroundColor(playerid, cam_row3Data, 255);
-	PlayerTextDrawFont(playerid, cam_row3Data, 1);
-	PlayerTextDrawLetterSize(playerid, cam_row3Data, 0.300000, 1.000000);
-	PlayerTextDrawColor(playerid, cam_row3Data, -1);
-	PlayerTextDrawSetOutline(playerid, cam_row3Data, 0);
-	PlayerTextDrawSetProportional(playerid, cam_row3Data, 1);
-	PlayerTextDrawSetShadow(playerid, cam_row3Data, 1);
-	PlayerTextDrawUseBox(playerid, cam_row3Data, 1);
-	PlayerTextDrawBoxColor(playerid, cam_row3Data, 3955300);
-	PlayerTextDrawTextSize(playerid, cam_row3Data, 400.000000, 14.000000);
-	PlayerTextDrawSetSelectable(playerid, cam_row3Data, true);
-
-	cam_row4Data = CreatePlayerTextDraw(playerid, 335.000000, 378.000000, "MOVE");
-	PlayerTextDrawBackgroundColor(playerid, cam_row4Data, 255);
-	PlayerTextDrawFont(playerid,cam_row4Data, 1);
-	PlayerTextDrawLetterSize(playerid, cam_row4Data, 0.300000, 1.000000);
-	PlayerTextDrawColor(playerid, cam_row4Data, 16777215);
-	PlayerTextDrawSetOutline(playerid, cam_row4Data, 0);
-	PlayerTextDrawSetProportional(playerid, cam_row4Data, 1);
-	PlayerTextDrawSetShadow(playerid, cam_row4Data, 1);
-	PlayerTextDrawUseBox(playerid, cam_row4Data, 1);
-	PlayerTextDrawBoxColor(playerid, cam_row4Data, 3955300);
-	PlayerTextDrawTextSize(playerid, cam_row4Data, 400.000000, 14.000000);
-	PlayerTextDrawSetSelectable(playerid, cam_row4Data, true);
-
-
-	// Edit Controls
-
-	cam_buttonEdit = CreatePlayerTextDraw(playerid, 250.000000, 290.000000, "E");
-	PlayerTextDrawBackgroundColor(playerid, cam_buttonEdit, 255);
-	PlayerTextDrawFont(playerid, cam_buttonEdit, 1);
-	PlayerTextDrawLetterSize(playerid, cam_buttonEdit, 1.000000, 2.499999);
-	PlayerTextDrawColor(playerid, cam_buttonEdit, -1);
-	PlayerTextDrawSetOutline(playerid, cam_buttonEdit, 0);
-	PlayerTextDrawSetProportional(playerid, cam_buttonEdit, 1);
-	PlayerTextDrawSetShadow(playerid, cam_buttonEdit, 1);
-	PlayerTextDrawUseBox(playerid, cam_buttonEdit, 1);
-	PlayerTextDrawBoxColor(playerid, cam_buttonEdit, 100);
-	PlayerTextDrawTextSize(playerid, cam_buttonEdit, 270.000000, 14.0);
-	PlayerTextDrawSetSelectable(playerid, cam_buttonEdit, true);
-
-	cam_buttonSave = CreatePlayerTextDraw(playerid, 280.000000, 290.000000, "S");
-	PlayerTextDrawBackgroundColor(playerid, cam_buttonSave, 255);
-	PlayerTextDrawFont(playerid, cam_buttonSave, 1);
-	PlayerTextDrawLetterSize(playerid, cam_buttonSave, 0.829999, 2.499999);
-	PlayerTextDrawColor(playerid, cam_buttonSave, -1);
-	PlayerTextDrawSetOutline(playerid, cam_buttonSave, 0);
-	PlayerTextDrawSetProportional(playerid, cam_buttonSave, 1);
-	PlayerTextDrawSetShadow(playerid, cam_buttonSave, 1);
-	PlayerTextDrawUseBox(playerid, cam_buttonSave, 1);
-	PlayerTextDrawBoxColor(playerid, cam_buttonSave, 100);
-	PlayerTextDrawTextSize(playerid, cam_buttonSave, 300.000000, 14.0);
-	PlayerTextDrawSetSelectable(playerid, cam_buttonSave, true);
-
-	cam_buttonDelt = CreatePlayerTextDraw(playerid, 310.000000, 290.000000, "X");
-	PlayerTextDrawBackgroundColor(playerid, cam_buttonDelt, 255);
-	PlayerTextDrawFont(playerid, cam_buttonDelt, 1);
-	PlayerTextDrawLetterSize(playerid, cam_buttonDelt, 0.890000, 2.499999);
-	PlayerTextDrawColor(playerid, cam_buttonDelt, -1);
-	PlayerTextDrawSetOutline(playerid, cam_buttonDelt, 0);
-	PlayerTextDrawSetProportional(playerid, cam_buttonDelt, 1);
-	PlayerTextDrawSetShadow(playerid, cam_buttonDelt, 1);
-	PlayerTextDrawUseBox(playerid, cam_buttonDelt, 1);
-	PlayerTextDrawBoxColor(playerid, cam_buttonDelt, 100);
-	PlayerTextDrawTextSize(playerid, cam_buttonDelt, 330.000000, 14.0);
-	PlayerTextDrawSetSelectable(playerid, cam_buttonDelt, true);
-
-	cam_buttonPrev = CreatePlayerTextDraw(playerid, 340.000000, 290.000000, ">>");
-	PlayerTextDrawBackgroundColor(playerid, cam_buttonPrev, 255);
-	PlayerTextDrawFont(playerid, cam_buttonPrev, 1);
-	PlayerTextDrawLetterSize(playerid, cam_buttonPrev, 0.389999, 2.499999);
-	PlayerTextDrawColor(playerid, cam_buttonPrev, -1);
-	PlayerTextDrawSetOutline(playerid, cam_buttonPrev, 0);
-	PlayerTextDrawSetProportional(playerid, cam_buttonPrev, 1);
-	PlayerTextDrawSetShadow(playerid, cam_buttonPrev, 1);
-	PlayerTextDrawUseBox(playerid, cam_buttonPrev, 1);
-	PlayerTextDrawBoxColor(playerid, cam_buttonPrev, 100);
-	PlayerTextDrawTextSize(playerid, cam_buttonPrev, 360.000000, 14.0);
-	PlayerTextDrawSetSelectable(playerid, cam_buttonPrev, true);
-
-	cam_buttonAddN = CreatePlayerTextDraw(playerid, 370.000000, 290.000000, "+");
-	PlayerTextDrawBackgroundColor(playerid, cam_buttonAddN, 255);
-	PlayerTextDrawFont(playerid, cam_buttonAddN, 1);
-	PlayerTextDrawLetterSize(playerid, cam_buttonAddN, 0.860000, 2.499999);
-	PlayerTextDrawColor(playerid, cam_buttonAddN, -1);
-	PlayerTextDrawSetOutline(playerid, cam_buttonAddN, 0);
-	PlayerTextDrawSetProportional(playerid, cam_buttonAddN, 1);
-	PlayerTextDrawSetShadow(playerid, cam_buttonAddN, 1);
-	PlayerTextDrawUseBox(playerid, cam_buttonAddN, 1);
-	PlayerTextDrawBoxColor(playerid, cam_buttonAddN, 100);
-	PlayerTextDrawTextSize(playerid, cam_buttonAddN, 390.000000, 14.0);
-	PlayerTextDrawSetSelectable(playerid, cam_buttonAddN, true);
-
-	cam_buttonBack = CreatePlayerTextDraw(playerid, 500.000000, 110.000000, "Back");
-	PlayerTextDrawBackgroundColor(playerid, cam_buttonBack, 255);
-	PlayerTextDrawFont(playerid, cam_buttonBack, 1);
-	PlayerTextDrawLetterSize(playerid, cam_buttonBack, 0.759999, 2.499999);
-	PlayerTextDrawColor(playerid, cam_buttonBack, -16776961);
-	PlayerTextDrawSetOutline(playerid, cam_buttonBack, 1);
-	PlayerTextDrawSetProportional(playerid, cam_buttonBack, 1);
-	PlayerTextDrawUseBox(playerid, cam_buttonBack, 1);
-	PlayerTextDrawBoxColor(playerid, cam_buttonBack, 100);
-	PlayerTextDrawTextSize(playerid, cam_buttonBack, 560.000000, 14.000000);
-	PlayerTextDrawSetSelectable(playerid, cam_buttonBack, true);
+	if(dialogid == d_Cam)
+	{
+	    if(!response) return editId[playerid] = -1;
+	    else{
+	        SCM(playerid,c_green,"* Interpolation updated.");
+	        new camid = editId[playerid];
+			if(listitem == 0)
+			{
+			    DeleteGizmos(camid);
+	  			camInfo[camid][c_Interpolated] = 0;
+	  			SaveCamera(camid,0);
+	  			CreateGizmos(camid);
+			}
+			else if(listitem == 1)
+			{
+			    DeleteGizmos(camid);
+   				camInfo[camid][c_Interpolated] = 1;
+   				SaveCamera(camid,0);
+	        	CreateGizmos(camid);
+			}
+			else if(listitem == 2)
+			{
+			    DeleteGizmos(camid);
+				camInfo[camid][c_Interpolated] = 2;
+				SaveCamera(camid,0);
+    			CreateGizmos(camid);
+			}
+			else if(listitem == 3)
+			{
+			    DeleteGizmos(camid);
+   				camInfo[camid][c_Interpolated] = 3;
+   				SaveCamera(camid,0);
+	        	CreateGizmos(camid);
+			}
+	    }
+	}
+	if(dialogid == d_Cam+1)
+	{
+	    if(response)
+		{
+	    	if(listitem == 0) SCM(playerid,c_yellow,"� /newcam - This command is used to create a new camera.");
+	    	else if(listitem == 1) SCM(playerid,c_yellow,"� /camint - This will let you change the interpolation state of your camera.");
+			else if(listitem == 2) SCM(playerid,c_yellow,"� /editcam - This will display the edit UI, wich you can use to change camera's position.");
+			else if(listitem == 3) SCM(playerid,c_yellow,"� /editlook - This will display the edit UI, wich you can use to change the position where your camera is looking.");
+			else if(listitem == 4) SCM(playerid,c_yellow,"� /ieditcam - This will display the edit UI, wich you can use to change interpolated camera's position.");
+			else if(listitem == 5) SCM(playerid,c_yellow,"� /ieditlook - This will display the edit UI, wich you can use to change the interpolated position where your camera is gonna look.");
+			else if(listitem == 6) SCM(playerid,c_yellow,"� /camtime - This edits the camera position interpolation time.");
+			else if(listitem == 7) SCM(playerid,c_yellow,"� /looktime - This edits the camera look at interpolation time.");
+			else if(listitem == 8) SCM(playerid,c_yellow,"� /playcam - This will play the camera animation.");
+			else if(listitem == 9) SCM(playerid,c_yellow,"� /stopcam - This will get you out of camera mode.");
+			else if(listitem == 10) SCM(playerid,c_yellow,"� /exportcam - This will export the code lines you need to implement a camera animation in your script.");
+			else if(listitem == 11) SCM(playerid,c_yellow,"� /editstop - In case the camera edit is stuck on, this will help fix the problem.");
+	    }
+	}
+	return 1;
 }
 
-
-
-// Separate functions that are used
-stock GetXYFromAngle(&Float:x, &Float:y, Float:a, Float:distance)
-	x+=(distance*floatsin(-a,degrees)),y+=(distance*floatcos(-a,degrees));
-
-stock GetXYZFromAngle(&Float:x, &Float:y, &Float:z, Float:angle, Float:elevation, Float:distance)
-    x += ( distance*floatsin(angle,degrees)*floatcos(elevation,degrees) ),y += ( distance*floatcos(angle,degrees)*floatcos(elevation,degrees) ),z += ( distance*floatsin(elevation,degrees) );
-
-
-
-
-// Debugging Commands
-
-new temp_camid;
-public OnPlayerCommandText(playerid, cmdtext[])
+public OnPlayerEditDynamicObject(playerid, objectid, response, Float:x, Float:y, Float:z, Float:rx, Float:ry, Float:rz)
 {
+	if(editMode[playerid] != 0)
+	{
+		new Float:oldPos[3]; GetDynamicObjectPos(objectid,oldPos[0],oldPos[1],oldPos[2]);
+	    if(response == 0) { SetDynamicObjectPos(objectid,oldPos[0],oldPos[1],oldPos[2]); UpdateGizmo(0,editId[playerid]); UpdateGizmo(1,editId[playerid]); editMode[playerid] = 0; editId[playerid] = -1; SCM(playerid,c_green,"* Edit mode canceld."); }
+	    if(response == 1)
+	    {
+	        if(editMode[playerid] == 1)
+	        {
+	            new camid = editId[playerid];
+	            SetDynamicObjectPos(objectid,x,y,z);
+	            camInfo[camid][c_Posx] = x; camInfo[camid][c_Posy] = y; camInfo[camid][c_Posz] = z;
+	            SCM(playerid,c_green,"* Camera position updated.");
+	            UpdateGizmo(0,camid);
+	            SaveCamera(camid,1);
+	            editMode[playerid] = 0; editId[playerid] = -1;
+	        }
+	        else if(editMode[playerid] == 2)
+	        {
+	            new camid = editId[playerid];
+	            SetDynamicObjectPos(objectid,x,y,z);
+	            camInfo[camid][c_Lookx] = x; camInfo[camid][c_Looky] = y; camInfo[camid][c_Lookz] = z;
+	            SCM(playerid,c_green,"* Camera look at updated.");
+	            UpdateGizmo(0,camid);
+	            SaveCamera(camid,2);
+	            editMode[playerid] = 0; editId[playerid] = -1;
+	        }
+	        else if(editMode[playerid] == 3)
+	        {
+	            new camid = editId[playerid];
+	            SetDynamicObjectPos(objectid,x,y,z);
+	            camInfo[camid][c_Intposx] = x; camInfo[camid][c_Intposy] = y; camInfo[camid][c_Intposz] = z;
+	            SCM(playerid,c_green,"* Interpolated camera position updated.");
+	            UpdateGizmo(1,camid);
+	            SaveCamera(camid,1);
+	            editMode[playerid] = 0; editId[playerid] = -1;
+	        }
+	        else if(editMode[playerid] == 4)
+	        {
+	            new camid = editId[playerid];
+	            SetDynamicObjectPos(objectid,x,y,z);
+	            camInfo[camid][c_Intlookx] = x; camInfo[camid][c_Intlooky] = y; camInfo[camid][c_Intlookz] = z;
+	            SCM(playerid,c_green,"* Camera interpolated look at updated.");
+	            UpdateGizmo(1,camid);
+	            SaveCamera(camid,2);
+	            editMode[playerid] = 0; editId[playerid] = -1;
+	        }
+	    }
+	}
+	return 1;
+}
+
+//Stocks down bellow
+
+stock SetObjectFaceCoords3D(iObject, Float: fX, Float: fY, Float: fZ, Float: fRollOffset = 0.0, Float: fPitchOffset = 0.0, Float: fYawOffset = 0.0)
+{//by RyDeR` http://forum.sa-mp.com/showthread.php?p=1498305&highlight=SetObjectFaceCoords3D#post1498305
+
 	new
-		cmd[30],
-		params[98];
-	sscanf(cmdtext, "s[30]s[98]", cmd, params);
+		Float: fOX,
+		Float: fOY,
+		Float: fOZ,
+		Float: fPitch
+	;
+	GetDynamicObjectPos(iObject, fOX, fOY, fOZ);
 
-	if(!strcmp(cmd, "/cameras"))
-	{
-		FormatMainMenu(playerid);
-		return 1;
-	}
-	if(!strcmp(cmd, "/mouse")) // Just in case you exit mouse mode by accident!
-	{
-		SelectTextDraw(playerid, 0xFFFF00FF);
-		return 1;
-	}
+	fPitch = floatsqroot(floatpower(fX - fOX, 2.0) + floatpower(fY - fOY, 2.0));
+	fPitch = floatabs(atan2(fPitch, fZ - fOZ));
 
-	// Some debug commands - Not really needed now the editor is here, but they might come in useful if it glitches.
+	fZ = atan2(fY - fOY, fX - fOX) - 90.0; // Yaw
 
-	if(!strcmp(cmd, "/loadcam"))
-	{
-		temp_camid = LoadCameraMover(params);
-		return 1;
-	}
-	if(!strcmp(cmd, "/playcam"))
-	{
-		PlayCameraMover(playerid, temp_camid, 0, false);
-		return 1;
-	}
-	if(!strcmp(cmd, "/editcam"))
-	{
-		EditCameraMover(playerid, temp_camid);
-		return 1;
-	}
-	if(!strcmp(cmd, "/exitediting"))
-	{
-		ExitEditing(playerid);
-		return 1;
-	}
-	if(!strcmp(cmd, "/loadtds")) // In case the textdraws bug up (Although this shouldn't happen now, textdraws now load every time you enter edit mode)
-	{
-		camera_LoadTextDraws(playerid);
-		SendClientMessage(playerid, 0xFFFF00FF, "Textdraws Loaded!");
-		return 1;
-	}
-	return 0;
+	SetDynamicObjectRot(iObject, fRollOffset, fPitch + fPitchOffset, fZ + fYawOffset);
 }
 
-
-public OnCameraReachNode(playerid, camera, node)
-{
-	if(node == camMaxNodes[camera])ApplyAnimation(0, "PED", "KO_shot_face", 5.0, 0, 1, 1, 1, 0, 1);
-}

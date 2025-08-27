@@ -1,1 +1,0 @@
-new PlayerText: triggernotif[MAX_PLAYERS][4];

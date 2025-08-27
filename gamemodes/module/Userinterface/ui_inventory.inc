@@ -1,6 +1,0 @@
-#include "./module/Userinterface/ui_inventory/header.inc"
-#include "./module/Userinterface/ui_inventory/native.inc"
-#include "./module/Userinterface/ui_inventory/stock.inc"
-#include "./module/Userinterface/ui_inventory/function.inc"
-#include "./module/Userinterface/ui_inventory/hook.inc"
-#include "./module/Userinterface/ui_inventory/cmd.inc"

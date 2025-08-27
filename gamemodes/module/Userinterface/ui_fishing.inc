@@ -1,5 +1,0 @@
-#include "./module/Userinterface/ui_fishing/header.inc"
-#include "./module/Userinterface/ui_fishing/stock.inc"
-#include "./module/Userinterface/ui_fishing/function.inc"
-#include "./module/Userinterface/ui_fishing/cmd.inc"
-#include "./module/Userinterface/ui_fishing/hook.inc"

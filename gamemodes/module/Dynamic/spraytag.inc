@@ -1,5 +1,0 @@
-#include "./module/Dynamic/spraytag/header.inc"
-#include "./module/Dynamic/spraytag/native.inc"
-#include "./module/Dynamic/spraytag/function.inc"
-#include "./module/Dynamic/spraytag/cmd.inc"
-#include "./module/Dynamic/spraytag/hook.inc"

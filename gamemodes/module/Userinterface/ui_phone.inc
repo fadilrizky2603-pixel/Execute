@@ -1,5 +1,0 @@
-#include "./module/Userinterface/ui_phone/header.inc"
-#include "./module/Userinterface/ui_phone/stock.inc"
-#include "./module/Userinterface/ui_phone/hook.inc"
-#include "./module/Userinterface/ui_phone/function.inc"
-#include "./module/Userinterface/ui_phone/cmd.inc"
